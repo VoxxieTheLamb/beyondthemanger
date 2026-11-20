@@ -2851,7 +2851,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => playBeep(783.99, 0.14, 'sine', 0.045), 75);
 
             setTimeout(() => {
-                window.location.href = 'https://voxxiethelamb/beyondthemangeralt';
+                window.location.href = 'https://voxxiethelamb.github.io/beyondthemangeralt';
             }, 650);
         }
     });
