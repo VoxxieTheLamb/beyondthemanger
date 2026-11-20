@@ -864,7 +864,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const altBtn = mixer.querySelector('#settingsAltBtn');
     if (altBtn) {
         altBtn.addEventListener('click', () => {
-            window.location.href = 'https://github.io';
+            window.location.href = 'https://voxxiethelamb.github.io/beyondthemangeralt';
         });
     }
     syncAllAudioUI();
