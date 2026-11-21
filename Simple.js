@@ -61,7 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
             { date: '2026-11-14', shortDate: 'Nov 14', title: 'Dances & Positions', pos: 'bottom', detail: 'Nov 14, 2026 !  Finalizing choreography, stage positions, voice line edits, and launching this digital showcase.' },
             { date: '2026-11-17', shortDate: 'Nov 17', title: 'Costume & Shoot', pos: 'top', detail: 'Nov 17, 2026 !  Official cast costume photoshoot and behind-the-scenes trailer filming.' },
             { date: '2026-11-26', shortDate: 'Nov 26', title: 'Poster & Trailer', pos: 'bottom', detail: 'Nov 26, 2026 !  Official promotional poster reveal and teaser trailer launch for Paskong AFCS 2026.' },
-            { date: '2026-12-15', shortDate: 'Dec 17', title: 'Presentation!', pos: 'top', detail: 'Dec 17, 2026 !  Live stage premiere at the AFCS Covered Court Stage for Paskong AFCS 2026!' }
+            { date: '2026-12-15', shortDate: 'Dec 15', title: 'Faculty Presentation', pos: 'top', detail: 'Dec 15, 2026 !  Faculty presentation for Paskong AFCS 2026.' },
+            { date: '2026-12-17', shortDate: 'Dec 17', title: 'Presentation!', pos: 'top', detail: 'Dec 17, 2026 !  Live stage premiere at the AFCS Covered Court Stage for Paskong AFCS 2026!' }
         ],
         venueFacts: [
             'Burj Khalifa, Dubai, UAE',
@@ -2692,7 +2693,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const secsEl = document.getElementById('cd-secs');
         if (!wrapper || !daysEl) return;
 
-        const targetDate = new Date('2026-12-15T18:00:00').getTime();
+        const targetDate = new Date('2026-12-17T18:00:00').getTime();
 
         function updateTimer() {
             const diff = targetDate - Date.now();
