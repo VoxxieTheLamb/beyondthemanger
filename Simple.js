@@ -197,10 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 a: "Presented by Grade 7 – Psalms (S.Y. 2026–2027) of Antipolo Faith Christian School Inc. for Paskong AFCS 2026."
             },
             {
-                q: "How did you make this?",
-                a: "I created the baseline and the functions, and used Artificial Intelligence to sharpen my work."
-            },
-            {
                 q: "Is there a price for attending?",
                 a: "Currently, no, there is not a price for the Show. We will keep you informed."
             },
