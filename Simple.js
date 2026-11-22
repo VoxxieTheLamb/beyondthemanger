@@ -724,13 +724,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>Background Waves</span>
             <button type="button" class="mixer-mute-chip" id="settingsWaveBtn">Animated</button>
         </div>
-        <div class="settings-divider"></div>
-        <div class="settings-section-label">ALTERNATE EDITION</div>
-        
-        <div class="settings-action-row" style="margin-bottom:4px;">
-            <span>Interactive Alt Site</span>
-            <button type="button" class="mixer-mute-chip" id="settingsAltBtn">Open Alt ↗</button>
-        </div>
         <p style="margin:0;font-size:10.5px;line-height:1.35;color:#fbbf24;opacity:0.9;">
             ⚠️ Not recommended for Teachers and Parents due to it being heavily altered and modified for fun, rather than a formal, clean website.
         </p>
