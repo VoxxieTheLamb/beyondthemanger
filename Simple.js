@@ -178,12 +178,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 tag: 'Light for My Path',
                 text: '“Your word is a lamp for my feet, a light on my path.”'
             }
-        ]
+        ],
+        faqs: [
+            {
+                q: "When and where is the live performance?",
+                a: "The live stage premiere is on December 17, 2026 at the AFCS Stage in the Covered Court."
+            },
+            {
+                q: "What is the play about?",
+                a: "At a meet and greet, something happens that shifts someone's worldview..."
+            },
+            {
+                q: "What language is the play performed in?",
+                a: "Beyond The Manger is a 6-part Taglish stage play blending action-thriller mystery with drama."
+            },
+            {
+                q: "Who is presenting this production?",
+                a: "Presented by Grade 7 – Psalms (S.Y. 2026–2027) of Antipolo Faith Christian School Inc. for Paskong AFCS 2026."
+            },
+            {
+                q: "How did you make this?",
+                a: "I created the baseline and the functions, and used Artificial Intelligence to sharpen my work."
+            },
+            {
+                q: "Is there a price for attending?",
+                a: "Currently, no, there is not a price for the Show. We will keep you informed."
+            },
+            {
+                q: "What time is the performance?",
+                a: "At 6pm on December 17."
+            },
+            {
+                q: "Where can I request features?",
+                a: "Request your features below."
+            }
+        ],
+        web3formsKey: "e5782444-af9b-4d75-818a-d50163048ed9"
     };
     function navBarThing() {
         const layout = document.querySelector('.main-content-layout') || document.body;
         if (!layout) return;
-
+        
         const nav = document.createElement('nav');
         nav.className = 'site-navbar';
         nav.innerHTML = [
@@ -202,9 +237,9 @@ document.addEventListener('DOMContentLoaded', () => {
             '</div>',
             '<button type="button" class="nav-cta-btn" id="navPlaybillBtn"> Playbill →</button>'
         ].join('');
-
+        
         layout.prepend(nav);
-
+        
         nav.querySelectorAll('.nav-link-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const target = btn.dataset.target;
@@ -215,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 playBeep(580, 0.05, 'sine', 0.03);
             });
         });
-
+        
         const playbillTrigger = nav.querySelector('#navPlaybillBtn');
         if (playbillTrigger) {
             playbillTrigger.addEventListener('click', () => {
@@ -224,72 +259,71 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     function startPraiseBGM() {
-    const praiseAudio = new Audio('Praise.mp3');
-    praiseAudio.loop = true;
-
-    function syncMusicVolume() {
-        const effectiveVol = (STATE.masterMuted || STATE.musicMuted)
+        const praiseAudio = new Audio('Praise.mp3');
+        praiseAudio.loop = true;
+        
+        function syncMusicVolume() {
+            const effectiveVol = (STATE.masterMuted || STATE.musicMuted)
             ? 0
             : Math.max(0, Math.min(1, STATE.masterVol * STATE.musicVol));
-        praiseAudio.volume = effectiveVol;
-        praiseAudio.muted = effectiveVol === 0;
-
-        if (effectiveVol > 0 && praiseAudio.paused) {
-            praiseAudio.play().catch(() => {});
+            praiseAudio.volume = effectiveVol;
+            praiseAudio.muted = effectiveVol === 0;
+            
+            if (effectiveVol > 0 && praiseAudio.paused) {
+                praiseAudio.play().catch(() => {});
+            }
         }
+        
+        function tryPlayPraise() {
+            if (STATE.masterMuted || STATE.musicMuted || STATE.masterVol === 0 || STATE.musicVol === 0) return;
+            praiseAudio.play().then(() => {
+                window.removeEventListener('pointerdown', tryPlayPraise);
+                window.removeEventListener('keydown', tryPlayPraise);
+            }).catch(() => {});
+        }
+        
+        syncMusicVolume();
+        window.syncPraiseAudio = syncMusicVolume;
+        
+        tryPlayPraise();
+        window.addEventListener('pointerdown', tryPlayPraise);
+        window.addEventListener('keydown', tryPlayPraise);
     }
-
-    function tryPlayPraise() {
-        if (STATE.masterMuted || STATE.musicMuted || STATE.masterVol === 0 || STATE.musicVol === 0) return;
-        praiseAudio.play().then(() => {
-            window.removeEventListener('pointerdown', tryPlayPraise);
-            window.removeEventListener('keydown', tryPlayPraise);
-        }).catch(() => {});
-    }
-
-    syncMusicVolume();
-    window.syncPraiseAudio = syncMusicVolume;
-
-    tryPlayPraise();
-    window.addEventListener('pointerdown', tryPlayPraise);
-    window.addEventListener('keydown', tryPlayPraise);
-    }
-    //#endregion
-    
+    //#endregion 
     //#region Core stuff
-        const STATE = {
-            masterMuted: localStorage.getItem('afcsMasterMuted') === 'true',
-            musicMuted: localStorage.getItem('afcsMusicMuted') === 'true',
-            sfxMuted: localStorage.getItem('afcsSfxMuted') === 'true',
-            masterVol: parseFloat(localStorage.getItem('afcsMasterVol') ?? '0.8'),
-            musicVol: parseFloat(localStorage.getItem('afcsMusicVol') ?? '0.15'),
-            sfxVol: parseFloat(localStorage.getItem('afcsSfxVol') ?? '0.7'),
-            activeRole: 'all',
-            activeFaction: null,
-            particles: [],
-            onOpenCard: [],
-            onClosePanel: [],
-            onFilterCards: [],
-            onSearchInput: [],
-            ldmActive: localStorage.getItem('afcs_ldm') === 'true'
-        };
- // states
-        const DOM = {
-            container: document.querySelector('.People'), // people
-            panel: document.getElementById('sidePanel'), // panel
-            overlay: document.getElementById('panelOverlay'), // how the panel is shown
-            panelImageContainer: document.getElementById('panelImageContainer'), // the image inside
-            panelBody: document.getElementById('panelBody'), // the body itself
-            closeBtn: document.querySelector('.close-btn'), // the X button
-            prevCardBtn: document.getElementById('prevCardBtn'), // last person
-            nextCardBtn: document.getElementById('nextCardBtn'), // next person
-            searchInput: document.getElementById('searchInput'), // search pill
-            clearBtn: document.getElementById('clearSearch'), // clearer
-            matchCountEl: document.getElementById('matchCount'), //matching type (They have a match I dont )
-            verity: document.getElementById('verity'), // HEY ITS ME ITS VERITY
-            filterBtns: document.querySelectorAll('.filter-btn[data-filter]'), // the filter buttons and stuff
-            factionBtns: document.querySelectorAll('.faction-btn[data-faction]') // the teams and stf
-        }; // Dom from Church??
+    const STATE = {
+        masterMuted: localStorage.getItem('afcsMasterMuted') === 'true',
+        musicMuted: localStorage.getItem('afcsMusicMuted') === 'true',
+        sfxMuted: localStorage.getItem('afcsSfxMuted') === 'true',
+        masterVol: parseFloat(localStorage.getItem('afcsMasterVol') ?? '0.8'),
+        musicVol: parseFloat(localStorage.getItem('afcsMusicVol') ?? '0.15'),
+        sfxVol: parseFloat(localStorage.getItem('afcsSfxVol') ?? '0.7'),
+        activeRole: 'all',
+        activeFaction: null,
+        particles: [],
+        onOpenCard: [],
+        onClosePanel: [],
+        onFilterCards: [],
+        onSearchInput: [],
+        ldmActive: localStorage.getItem('afcs_ldm') === 'true'
+    };
+    // states
+    const DOM = {
+        container: document.querySelector('.People'), // people
+        panel: document.getElementById('sidePanel'), // panel
+        overlay: document.getElementById('panelOverlay'), // how the panel is shown
+        panelImageContainer: document.getElementById('panelImageContainer'), // the image inside
+        panelBody: document.getElementById('panelBody'), // the body itself
+        closeBtn: document.querySelector('.close-btn'), // the X button
+        prevCardBtn: document.getElementById('prevCardBtn'), // last person
+        nextCardBtn: document.getElementById('nextCardBtn'), // next person
+        searchInput: document.getElementById('searchInput'), // search pill
+        clearBtn: document.getElementById('clearSearch'), // clearer
+        matchCountEl: document.getElementById('matchCount'), //matching type (They have a match I dont )
+        verity: document.getElementById('verity'), // HEY ITS ME ITS VERITY
+        filterBtns: document.querySelectorAll('.filter-btn[data-filter]'), // the filter buttons and stuff
+        factionBtns: document.querySelectorAll('.faction-btn[data-faction]') // the teams and stf
+    }; // Dom from Church??
     function getCards() {
         return Array.from(document.querySelectorAll('.PeoplePics'));
     } // all it does it GET the CARDS and stf
@@ -317,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dock = document.body.dataset.panelDock;
         const wrappers = Array.from(document.querySelectorAll('.People > .PersonWrapper'));
         if (!wrappers.length) return;
-
+        
         if (!document.body.classList.contains('panel-is-open') || (dock !== 'center' && dock !== 'bottom') || window.innerWidth <= 768) {
             document.body.classList.remove('has-custom-drop');
             document.documentElement.style.removeProperty('--split-cols');
@@ -326,34 +360,34 @@ document.addEventListener('DOMContentLoaded', () => {
             wrappers.forEach(w => { w.style.gridColumn = ''; });
             return;
         }
-
+        
         if (dock === 'center' && DOM.panel && DOM.panel.classList.contains('is-custom-pos')) {
             const rect = DOM.panel.getBoundingClientRect();
             const pad = 20;
             const leftSpace = Math.max(0, rect.left - pad);
             const rightSpace = Math.max(0, window.innerWidth - rect.right - pad);
             const minColWidth = 135;
-
+            
             const leftCols = Math.floor(leftSpace / minColWidth);
             const rightCols = Math.floor(rightSpace / minColWidth);
-
+            
             if (leftCols === 0 && rightCols === 0) {
                 document.body.classList.remove('has-custom-drop');
                 wrappers.forEach(w => { w.style.gridColumn = ''; });
                 return;
             }
-
+            
             const gapWidth = Math.round(rect.width + 32);
             const leftPart = leftCols > 0 ? `repeat(${leftCols}, minmax(115px, 1fr)) ` : '';
             const rightPart = rightCols > 0 ? ` repeat(${rightCols}, minmax(115px, 1fr))` : '';
             const template = `${leftPart}${gapWidth}px${rightPart}`.trim();
-
+            
             document.body.classList.add('has-custom-drop');
             document.documentElement.style.setProperty('--drop-grid-template', template);
-
+            
             const totalPerRow = leftCols + rightCols;
             const gapColIndex = leftCols + 1;
-
+            
             wrappers.forEach((w, idx) => {
                 const posInRow = idx % totalPerRow;
                 const col = posInRow < leftCols ? posInRow + 1 : posInRow + 2;
@@ -361,43 +395,43 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             return;
         }
-
+        
         document.body.classList.remove('has-custom-drop');
         document.documentElement.style.removeProperty('--drop-grid-template');
-
+        
         const panelWidth = dock === 'bottom'
-            ? Math.min(560, window.innerWidth - 24)
-            : Math.min(520, window.innerWidth - 28);
+        ? Math.min(560, window.innerWidth - 24)
+        : Math.min(520, window.innerWidth - 28);
         const gapWidth = panelWidth + 36;
         const availableSideSpace = Math.max(260, window.innerWidth - gapWidth - 48);
         const colsPerSide = Math.max(1, Math.min(4, Math.floor(availableSideSpace / 2 / 145)));
         const totalPerRow = colsPerSide * 2;
-
+        
         document.documentElement.style.setProperty('--split-cols', String(colsPerSide));
         document.documentElement.style.setProperty('--split-gap', `${gapWidth}px`);
-
+        
         wrappers.forEach((w, idx) => {
             const posInRow = idx % totalPerRow;
             const col = posInRow < colsPerSide ? posInRow + 1 : posInRow + 2;
             w.style.gridColumn = String(col);
         });
     }
-        function startDynamicTabPanel() {
+    function startDynamicTabPanel() {
         if (!DOM.panel) return;
-
+        
         const snapPreview = document.createElement('div');
         snapPreview.className = 'dock-snap-preview';
         snapPreview.innerHTML = '<span class="dock-snap-label" id="dockSnapLabel">Hold 2s to Dock</span><div class="dock-snap-fill"></div>';
         document.body.appendChild(snapPreview);
         const snapLabelEl = snapPreview.querySelector('#dockSnapLabel');
-
+        
         let isDragging = false;
         let offsetX = 0;
         let offsetY = 0;
         let hoveredEdge = null;
         let edgeHoldTimer = null;
         let edgeLocked = false;
-
+        
         function clearInlineGeometry() {
             DOM.panel.classList.remove('is-custom-pos', 'is-dragging');
             DOM.panel.style.left = '';
@@ -407,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
             DOM.panel.style.width = '';
             DOM.panel.style.height = '';
         }
-
+        
         function resetEdgeHold() {
             clearTimeout(edgeHoldTimer);
             edgeHoldTimer = null;
@@ -416,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
             snapPreview.classList.remove('is-visible', 'is-charging', 'is-ready');
             delete snapPreview.dataset.edge;
         }
-
+        
         function commitEdgeDock(edge) {
             isDragging = false;
             resetEdgeHold();
@@ -427,22 +461,22 @@ document.addEventListener('DOMContentLoaded', () => {
             playBeep(587.33, 0.08, 'triangle', 0.045);
             setTimeout(() => playBeep(880.00, 0.12, 'triangle', 0.045), 75);
         }
-
+        
         function updateEdgeHover(clientX, clientY) {
             const threshold = 48;
             let detected = null;
-
+            
             if (clientX <= threshold) detected = 'left';
             else if (clientX >= window.innerWidth - threshold) detected = 'right';
             else if (clientY >= window.innerHeight - threshold) detected = 'bottom';
-
+            
             if (!detected) {
                 if (hoveredEdge) resetEdgeHold();
                 return;
             }
-
+            
             if (detected === hoveredEdge) return;
-
+            
             resetEdgeHold();
             hoveredEdge = detected;
             snapPreview.dataset.edge = detected;
@@ -450,9 +484,9 @@ document.addEventListener('DOMContentLoaded', () => {
             snapPreview.classList.add('is-visible');
             void snapPreview.offsetWidth;
             snapPreview.classList.add('is-charging');
-
+            
             playBeep(440, 0.05, 'sine', 0.03);
-
+            
             edgeHoldTimer = setTimeout(() => {
                 if (!isDragging || hoveredEdge !== detected) return;
                 edgeLocked = true;
@@ -461,24 +495,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 commitEdgeDock(detected);
             }, 2000);
         }
-
+        
         STATE.onClosePanel.push(() => {
             resetEdgeHold();
             clearInlineGeometry();
         });
-
+        
         DOM.panel.addEventListener('pointerdown', (e) => {
             if (window.innerWidth <= 768) return;
             if (e.target.closest('button, a, input, textarea, img, .connection-pill, .cyn-voice-caption')) return;
-
+            
             const rect = DOM.panel.getBoundingClientRect();
             const floatWidth = Math.min(520, window.innerWidth - 28);
             const floatHeight = Math.min(rect.height, window.innerHeight * 0.84);
-
+            
             isDragging = true;
             offsetX = Math.min(floatWidth - 40, Math.max(40, e.clientX - rect.left));
             offsetY = Math.min(60, Math.max(16, e.clientY - rect.top));
-
+            
             DOM.panel.dataset.dock = 'center';
             document.body.dataset.panelDock = 'center';
             DOM.panel.classList.add('is-dragging', 'is-custom-pos');
@@ -488,24 +522,24 @@ document.addEventListener('DOMContentLoaded', () => {
             DOM.panel.style.bottom = 'auto';
             DOM.panel.style.width = `${floatWidth}px`;
             DOM.panel.style.height = `${floatHeight}px`;
-
+            
             DOM.panel.setPointerCapture(e.pointerId);
             updateSplitGridLayout();
         });
-
+        
         DOM.panel.addEventListener('pointermove', (e) => {
             if (!isDragging) return;
             const maxLeft = Math.max(8, window.innerWidth - DOM.panel.offsetWidth - 8);
             const maxTop = Math.max(8, window.innerHeight - DOM.panel.offsetHeight - 8);
             const nextLeft = Math.max(8, Math.min(maxLeft, e.clientX - offsetX));
             const nextTop = Math.max(8, Math.min(maxTop, e.clientY - offsetY));
-
+            
             DOM.panel.style.left = `${nextLeft}px`;
             DOM.panel.style.top = `${nextTop}px`;
-
+            
             updateEdgeHover(e.clientX, e.clientY);
         });
-
+        
         function finishDrag(e) {
             if (!isDragging) return;
             isDragging = false;
@@ -513,23 +547,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e && e.pointerId !== undefined && DOM.panel.hasPointerCapture(e.pointerId)) {
                 DOM.panel.releasePointerCapture(e.pointerId);
             }
-
+            
             if (edgeLocked && hoveredEdge) {
                 commitEdgeDock(hoveredEdge);
                 return;
             }
-
+            
             resetEdgeHold();
             updateSplitGridLayout();
             playBeep(520, 0.05, 'sine', 0.03);
         }
-
+        
         DOM.panel.addEventListener('pointerup', finishDrag);
         DOM.panel.addEventListener('pointercancel', finishDrag);
     }
-
-    //#endregion
     
+    //#endregion  
     //#region Audio and Visuals
     let sharedAudioCtx = null;
     let ambientGlitchTimer = null;
@@ -542,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const ctx = getAudioContext();
             if (!ctx) return;
-
+            
             const now = ctx.currentTime;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
@@ -561,7 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const ctx = getAudioContext();
             if (!ctx) return null;
-
+            
             const now = ctx.currentTime;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
@@ -572,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
             osc.connect(gain);
             gain.connect(ctx.destination);
             osc.start(now);
-
+            
             let released = false;
             return function releaseNote() {
                 if (released) return;
@@ -588,7 +621,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     let masterSfxGain = null;
-
+    
     function getAudioContext() {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return null;
@@ -601,27 +634,27 @@ document.addEventListener('DOMContentLoaded', () => {
         syncSfxGain();
         return sharedAudioCtx;
     }
-
+    
     function getSfxDestination() {
         const ctx = getAudioContext();
         return masterSfxGain || (ctx ? ctx.destination : null);
     }
-
+    
     function syncSfxGain() {
         if (!masterSfxGain || !sharedAudioCtx) return;
         const effectiveVol = (STATE.masterMuted || STATE.sfxMuted)
-            ? 0
-            : Math.max(0, Math.min(1, STATE.masterVol * STATE.sfxVol));
+        ? 0
+        : Math.max(0, Math.min(1, STATE.masterVol * STATE.sfxVol));
         masterSfxGain.gain.setValueAtTime(effectiveVol, sharedAudioCtx.currentTime);
     }
-
+    
     function playBeep(freq = 520, duration = 0.08, type = 'square', vol = 0.04) {
         if (STATE.masterMuted || STATE.sfxMuted || STATE.masterVol === 0 || STATE.sfxVol === 0) return;
         try {
             const ctx = getAudioContext();
             const dest = getSfxDestination();
             if (!ctx || !dest) return;
-
+            
             const now = ctx.currentTime;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
@@ -635,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
             osc.stop(now + duration + 0.02);
         } catch (_) { }
     }
-
+    
     function playTeacherChord() {
         if (STATE.masterMuted || STATE.sfxMuted) return;
         const notes = [261.63, 329.63, 392.00, 523.25];
@@ -644,20 +677,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     function startAudioControls() {
-    const toggleBtn = document.createElement('button');
-    toggleBtn.type = 'button';
-    toggleBtn.className = 'audio-toggle-btn settings-hub-btn';
-    toggleBtn.title = 'Site Settings (Audio & Display)';
-    toggleBtn.textContent = '⚙️';
-
-    const mixer = document.createElement('div');
-    mixer.className = 'audio-mixer-popover settings-hub-popover';
-    mixer.innerHTML = `
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'audio-toggle-btn settings-hub-btn';
+        toggleBtn.title = 'Site Settings (Audio & Display)';
+        toggleBtn.textContent = '⚙️';
+        
+        const mixer = document.createElement('div');
+        mixer.className = 'audio-mixer-popover settings-hub-popover';
+        mixer.innerHTML = `
         <div class="mixer-header">
             <span>⚙️ SITE SETTINGS</span>
             <button type="button" class="mixer-close-btn" title="Close">&times;</button>
         </div>
-
+        
         <div class="settings-section-label">AUDIO MIXER</div>
         <div class="mixer-row">
             <div class="mixer-label-row">
@@ -666,7 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <input type="range" class="mixer-slider" id="masterSlider" min="0" max="100" step="1">
         </div>
-
+        
         <div class="mixer-row">
             <div class="mixer-label-row">
                 <button type="button" class="mixer-mute-chip" id="muteMusicBtn">🎵 Music</button>
@@ -674,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <input type="range" class="mixer-slider" id="musicSlider" min="0" max="100" step="1">
         </div>
-
+        
         <div class="mixer-row">
             <div class="mixer-label-row">
                 <button type="button" class="mixer-mute-chip" id="muteSfxBtn">🔔 SFX</button>
@@ -682,22 +715,22 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <input type="range" class="mixer-slider" id="sfxSlider" min="0" max="100" step="1">
         </div>
-
+        
         <div class="settings-divider"></div>
         <div class="settings-section-label">DISPLAY & VISUALS</div>
-
+        
         <div class="settings-action-row">
             <span>Low Detail Mode (FPS)</span>
             <button type="button" class="mixer-mute-chip" id="settingsLdmBtn">OFF</button>
         </div>
-
+        
         <div class="settings-action-row">
             <span>Background Waves</span>
             <button type="button" class="mixer-mute-chip" id="settingsWaveBtn">Animated</button>
         </div>
         <div class="settings-divider"></div>
         <div class="settings-section-label">ALTERNATE EDITION</div>
-
+        
         <div class="settings-action-row" style="margin-bottom:4px;">
             <span>Interactive Alt Site</span>
             <button type="button" class="mixer-mute-chip" id="settingsAltBtn">Open Alt ↗</button>
@@ -706,184 +739,184 @@ document.addEventListener('DOMContentLoaded', () => {
             ⚠️ Not recommended for Teachers and Parents due to it being heavily altered and modified for fun, rather than a formal, clean website.
         </p>
     `;
-
-    document.body.appendChild(toggleBtn);
-    document.body.appendChild(mixer);
-
-    const masterSlider = mixer.querySelector('#masterSlider');
-    const musicSlider = mixer.querySelector('#musicSlider');
-    const sfxSlider = mixer.querySelector('#sfxSlider');
-
-    const masterPct = mixer.querySelector('#masterPct');
-    const musicPct = mixer.querySelector('#musicPct');
-    const sfxPct = mixer.querySelector('#sfxPct');
-
-    const muteMasterBtn = mixer.querySelector('#muteMasterBtn');
-    const muteMusicBtn = mixer.querySelector('#muteMusicBtn');
-    const muteSfxBtn = mixer.querySelector('#muteSfxBtn');
-
-    const ldmBtn = mixer.querySelector('#settingsLdmBtn');
-    const waveBtn = mixer.querySelector('#settingsWaveBtn');
-
-    function syncAllAudioUI() {
-        const mVal = Math.round(STATE.masterVol * 100);
-        const bgmVal = Math.round(STATE.musicVol * 100);
-        const sfxVal = Math.round(STATE.sfxVol * 100);
-
-        masterSlider.value = mVal;
-        musicSlider.value = bgmVal;
-        sfxSlider.value = sfxVal;
-
-        masterPct.textContent = STATE.masterMuted ? 'MUTED' : `${mVal}%`;
-        musicPct.textContent = (STATE.masterMuted || STATE.musicMuted) ? 'MUTED' : `${bgmVal}%`;
-        sfxPct.textContent = (STATE.masterMuted || STATE.sfxMuted) ? 'MUTED' : `${sfxVal}%`;
-
-        muteMasterBtn.classList.toggle('is-muted', STATE.masterMuted);
-        muteMusicBtn.classList.toggle('is-muted', STATE.musicMuted);
-        muteSfxBtn.classList.toggle('is-muted', STATE.sfxMuted);
-
-        const allSilent = STATE.masterMuted || (STATE.musicMuted && STATE.sfxMuted) || mVal === 0;
-        toggleBtn.classList.toggle('is-muted', allSilent);
-
-        syncSfxGain();
-        if (typeof window.syncPraiseAudio === 'function') {
-            window.syncPraiseAudio();
+        
+        document.body.appendChild(toggleBtn);
+        document.body.appendChild(mixer);
+        
+        const masterSlider = mixer.querySelector('#masterSlider');
+        const musicSlider = mixer.querySelector('#musicSlider');
+        const sfxSlider = mixer.querySelector('#sfxSlider');
+        
+        const masterPct = mixer.querySelector('#masterPct');
+        const musicPct = mixer.querySelector('#musicPct');
+        const sfxPct = mixer.querySelector('#sfxPct');
+        
+        const muteMasterBtn = mixer.querySelector('#muteMasterBtn');
+        const muteMusicBtn = mixer.querySelector('#muteMusicBtn');
+        const muteSfxBtn = mixer.querySelector('#muteSfxBtn');
+        
+        const ldmBtn = mixer.querySelector('#settingsLdmBtn');
+        const waveBtn = mixer.querySelector('#settingsWaveBtn');
+        
+        function syncAllAudioUI() {
+            const mVal = Math.round(STATE.masterVol * 100);
+            const bgmVal = Math.round(STATE.musicVol * 100);
+            const sfxVal = Math.round(STATE.sfxVol * 100);
+            
+            masterSlider.value = mVal;
+            musicSlider.value = bgmVal;
+            sfxSlider.value = sfxVal;
+            
+            masterPct.textContent = STATE.masterMuted ? 'MUTED' : `${mVal}%`;
+            musicPct.textContent = (STATE.masterMuted || STATE.musicMuted) ? 'MUTED' : `${bgmVal}%`;
+            sfxPct.textContent = (STATE.masterMuted || STATE.sfxMuted) ? 'MUTED' : `${sfxVal}%`;
+            
+            muteMasterBtn.classList.toggle('is-muted', STATE.masterMuted);
+            muteMusicBtn.classList.toggle('is-muted', STATE.musicMuted);
+            muteSfxBtn.classList.toggle('is-muted', STATE.sfxMuted);
+            
+            const allSilent = STATE.masterMuted || (STATE.musicMuted && STATE.sfxMuted) || mVal === 0;
+            toggleBtn.classList.toggle('is-muted', allSilent);
+            
+            syncSfxGain();
+            if (typeof window.syncPraiseAudio === 'function') {
+                window.syncPraiseAudio();
+            }
         }
-    }
-
-    masterSlider.addEventListener('input', () => {
-        STATE.masterVol = Number(masterSlider.value) / 100;
-        if (STATE.masterVol > 0) STATE.masterMuted = false;
-        localStorage.setItem('afcsMasterVol', String(STATE.masterVol));
-        localStorage.setItem('afcsMasterMuted', String(STATE.masterMuted));
-        syncAllAudioUI();
-    });
-
-    musicSlider.addEventListener('input', () => {
-        STATE.musicVol = Number(musicSlider.value) / 100;
-        if (STATE.musicVol > 0) STATE.musicMuted = false;
-        localStorage.setItem('afcsMusicVol', String(STATE.musicVol));
-        localStorage.setItem('afcsMusicMuted', String(STATE.musicMuted));
-        syncAllAudioUI();
-    });
-
-    sfxSlider.addEventListener('input', () => {
-        STATE.sfxVol = Number(sfxSlider.value) / 100;
-        if (STATE.sfxVol > 0) STATE.sfxMuted = false;
-        localStorage.setItem('afcsSfxVol', String(STATE.sfxVol));
-        localStorage.setItem('afcsSfxMuted', String(STATE.sfxMuted));
-        syncAllAudioUI();
-    });
-
-    sfxSlider.addEventListener('change', () => {
-        playBeep(620, 0.06, 'sine', 0.045);
-    });
-
-    muteMasterBtn.addEventListener('click', () => {
-        STATE.masterMuted = !STATE.masterMuted;
-        localStorage.setItem('afcsMasterMuted', String(STATE.masterMuted));
-        syncAllAudioUI();
-        if (!STATE.masterMuted) playBeep(580, 0.07, 'sine', 0.045);
-    });
-
-    muteMusicBtn.addEventListener('click', () => {
-        STATE.musicMuted = !STATE.musicMuted;
-        localStorage.setItem('afcsMusicMuted', String(STATE.musicMuted));
-        syncAllAudioUI();
-        playBeep(520, 0.05, 'sine', 0.035);
-    });
-
-    muteSfxBtn.addEventListener('click', () => {
-        STATE.sfxMuted = !STATE.sfxMuted;
-        localStorage.setItem('afcsSfxMuted', String(STATE.sfxMuted));
-        syncAllAudioUI();
-        if (!STATE.sfxMuted) playBeep(660, 0.07, 'sine', 0.045);
-    });
-
-    let ldmOn = localStorage.getItem('afcs_ldm') === 'true';
-    function syncLDM() {
-        STATE.ldmActive = ldmOn;
-        document.body.classList.toggle('ldm-active', ldmOn);
-        ldmBtn.textContent = ldmOn ? 'ON (Fast)' : 'OFF';
-        ldmBtn.classList.toggle('is-active-chip', ldmOn);
-        if (!ldmOn && typeof window.wakeStarCanvas === 'function') {
-            window.wakeStarCanvas();
+        
+        masterSlider.addEventListener('input', () => {
+            STATE.masterVol = Number(masterSlider.value) / 100;
+            if (STATE.masterVol > 0) STATE.masterMuted = false;
+            localStorage.setItem('afcsMasterVol', String(STATE.masterVol));
+            localStorage.setItem('afcsMasterMuted', String(STATE.masterMuted));
+            syncAllAudioUI();
+        });
+        
+        musicSlider.addEventListener('input', () => {
+            STATE.musicVol = Number(musicSlider.value) / 100;
+            if (STATE.musicVol > 0) STATE.musicMuted = false;
+            localStorage.setItem('afcsMusicVol', String(STATE.musicVol));
+            localStorage.setItem('afcsMusicMuted', String(STATE.musicMuted));
+            syncAllAudioUI();
+        });
+        
+        sfxSlider.addEventListener('input', () => {
+            STATE.sfxVol = Number(sfxSlider.value) / 100;
+            if (STATE.sfxVol > 0) STATE.sfxMuted = false;
+            localStorage.setItem('afcsSfxVol', String(STATE.sfxVol));
+            localStorage.setItem('afcsSfxMuted', String(STATE.sfxMuted));
+            syncAllAudioUI();
+        });
+        
+        sfxSlider.addEventListener('change', () => {
+            playBeep(620, 0.06, 'sine', 0.045);
+        });
+        
+        muteMasterBtn.addEventListener('click', () => {
+            STATE.masterMuted = !STATE.masterMuted;
+            localStorage.setItem('afcsMasterMuted', String(STATE.masterMuted));
+            syncAllAudioUI();
+            if (!STATE.masterMuted) playBeep(580, 0.07, 'sine', 0.045);
+        });
+        
+        muteMusicBtn.addEventListener('click', () => {
+            STATE.musicMuted = !STATE.musicMuted;
+            localStorage.setItem('afcsMusicMuted', String(STATE.musicMuted));
+            syncAllAudioUI();
+            playBeep(520, 0.05, 'sine', 0.035);
+        });
+        
+        muteSfxBtn.addEventListener('click', () => {
+            STATE.sfxMuted = !STATE.sfxMuted;
+            localStorage.setItem('afcsSfxMuted', String(STATE.sfxMuted));
+            syncAllAudioUI();
+            if (!STATE.sfxMuted) playBeep(660, 0.07, 'sine', 0.045);
+        });
+        
+        let ldmOn = localStorage.getItem('afcs_ldm') === 'true';
+        function syncLDM() {
+            STATE.ldmActive = ldmOn;
+            document.body.classList.toggle('ldm-active', ldmOn);
+            ldmBtn.textContent = ldmOn ? 'ON (Fast)' : 'OFF';
+            ldmBtn.classList.toggle('is-active-chip', ldmOn);
+            if (!ldmOn && typeof window.wakeStarCanvas === 'function') {
+                window.wakeStarCanvas();
+            }
         }
-    }
-    syncLDM();
-
-    ldmBtn.addEventListener('click', () => {
-        ldmOn = !ldmOn;
-        localStorage.setItem('afcs_ldm', String(ldmOn));
         syncLDM();
-        playBeep(ldmOn ? 420 : 680, 0.06, 'sine', 0.035);
-    });
-
-    let savedMode = localStorage.getItem('afcs_waves_mode');
-    if (savedMode === null) {
-        savedMode = localStorage.getItem('afcs_waves_paused') === 'true' ? '1' : '0';
-    }
-    let waveMode = Number(savedMode) || 0;
-
-    function syncWaveState(mode) {
-        document.body.classList.toggle('waves-paused', mode === 1);
-        document.body.classList.toggle('waves-hidden', mode === 2);
-        if (mode === 0) waveBtn.textContent = 'Animated';
-        else if (mode === 1) waveBtn.textContent = 'Paused';
-        else waveBtn.textContent = 'Hidden';
-        waveBtn.classList.toggle('is-muted', mode === 2);
-    }
-    syncWaveState(waveMode);
-
-    waveBtn.addEventListener('click', () => {
-        waveMode = (waveMode + 1) % 3;
-        localStorage.setItem('afcs_waves_mode', String(waveMode));
-        localStorage.setItem('afcs_waves_paused', String(waveMode === 1));
+        
+        ldmBtn.addEventListener('click', () => {
+            ldmOn = !ldmOn;
+            localStorage.setItem('afcs_ldm', String(ldmOn));
+            syncLDM();
+            playBeep(ldmOn ? 420 : 680, 0.06, 'sine', 0.035);
+        });
+        
+        let savedMode = localStorage.getItem('afcs_waves_mode');
+        if (savedMode === null) {
+            savedMode = localStorage.getItem('afcs_waves_paused') === 'true' ? '1' : '0';
+        }
+        let waveMode = Number(savedMode) || 0;
+        
+        function syncWaveState(mode) {
+            document.body.classList.toggle('waves-paused', mode === 1);
+            document.body.classList.toggle('waves-hidden', mode === 2);
+            if (mode === 0) waveBtn.textContent = 'Animated';
+            else if (mode === 1) waveBtn.textContent = 'Paused';
+            else waveBtn.textContent = 'Hidden';
+            waveBtn.classList.toggle('is-muted', mode === 2);
+        }
         syncWaveState(waveMode);
-        const tones = Array.of(480, 360, 620);
-        playBeep(tones.at(waveMode), 0.06, 'sine', 0.03);
-    });
-
-    toggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = mixer.classList.toggle('is-open');
-        toggleBtn.classList.toggle('is-open', isOpen);
-        playBeep(isOpen ? 640 : 440, 0.05, 'sine', 0.035);
-    });
-
-    mixer.querySelector('.mixer-close-btn').addEventListener('click', () => {
-        mixer.classList.remove('is-open');
-        toggleBtn.classList.remove('is-open');
-    });
-
-    window.addEventListener('click', (e) => {
-        if (mixer.classList.contains('is-open') && !mixer.contains(e.target) && e.target !== toggleBtn) {
+        
+        waveBtn.addEventListener('click', () => {
+            waveMode = (waveMode + 1) % 3;
+            localStorage.setItem('afcs_waves_mode', String(waveMode));
+            localStorage.setItem('afcs_waves_paused', String(waveMode === 1));
+            syncWaveState(waveMode);
+            const tones = Array.of(480, 360, 620);
+            playBeep(tones.at(waveMode), 0.06, 'sine', 0.03);
+        });
+        
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = mixer.classList.toggle('is-open');
+            toggleBtn.classList.toggle('is-open', isOpen);
+            playBeep(isOpen ? 640 : 440, 0.05, 'sine', 0.035);
+        });
+        
+        mixer.querySelector('.mixer-close-btn').addEventListener('click', () => {
             mixer.classList.remove('is-open');
             toggleBtn.classList.remove('is-open');
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (mixer.classList.contains('is-open') && !mixer.contains(e.target) && e.target !== toggleBtn) {
+                mixer.classList.remove('is-open');
+                toggleBtn.classList.remove('is-open');
+            }
+        });
+        const altBtn = mixer.querySelector('#settingsAltBtn');
+        if (altBtn) {
+            altBtn.addEventListener('click', () => {
+                window.location.href = 'https://voxxiethelamb.github.io/beyondthemangeralt';
+            });
         }
-    });
-    const altBtn = mixer.querySelector('#settingsAltBtn');
-    if (altBtn) {
-        altBtn.addEventListener('click', () => {
-            window.location.href = 'https://voxxiethelamb.github.io/beyondthemangeralt';
+        syncAllAudioUI();
+        
+        DOM.filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => playBeep(620, 0.045, 'sine', 0.03));
+        });
+        
+        STATE.onClosePanel.push(() => {
+            playBeep(420, 0.06, 'sine', 0.03);
+            setTimeout(() => playBeep(320, 0.08, 'sine', 0.03), 55);
         });
     }
-    syncAllAudioUI();
-
-    DOM.filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => playBeep(620, 0.045, 'sine', 0.03));
-    });
-
-    STATE.onClosePanel.push(() => {
-        playBeep(420, 0.06, 'sine', 0.03);
-        setTimeout(() => playBeep(320, 0.08, 'sine', 0.03), 55);
-    });
-}
     function startTrailerControls() {
         const videoBox = document.querySelector('.video');
         const videoEl = videoBox ? videoBox.querySelector('video') : null;
         if (!videoBox || !videoEl) return;
-
+        
         const bar = document.createElement('div');
         bar.className = 'yt-video-controls';
         bar.innerHTML = [
@@ -892,38 +925,37 @@ document.addEventListener('DOMContentLoaded', () => {
             '<button type="button" class="yt-ctrl-btn" id="ytForwardBtn"> +10s</button>'
         ].join('');
         videoBox.appendChild(bar);
-
+        
         const rewBtn = bar.querySelector('#ytRewindBtn');
         const playBtn = bar.querySelector('#ytPlayPauseBtn');
         const fwdBtn = bar.querySelector('#ytForwardBtn');
-
+        
         function togglePlay() {
             if (videoEl.style.display === 'none') return;
             if (videoEl.paused) videoEl.play();
             else videoEl.pause();
             playBeep(560, 0.05, 'sine', 0.03);
         }
-
+        
         function skipSeconds(delta) {
             if (videoEl.style.display === 'none' || !isFinite(videoEl.duration)) return;
             videoEl.currentTime = Math.max(0, Math.min(videoEl.duration, videoEl.currentTime + delta));
             playBeep(delta > 0 ? 660 : 440, 0.04, 'sine', 0.03);
         }
-
+        
         rewBtn.addEventListener('click', () => skipSeconds(-10));
         playBtn.addEventListener('click', togglePlay);
         fwdBtn.addEventListener('click', () => skipSeconds(10));
-
+        
         videoEl.addEventListener('play', () => { playBtn.textContent = ' Pause'; });
         videoEl.addEventListener('pause', () => { playBtn.textContent = ' Play'; });
     }
-    //#endregion
-    
+    //#endregion 
     //#region People stuff
     function createPeople() {
         getCards().forEach(card => {
             const fullName = card.querySelector('.overlay-text').textContent.toLowerCase();
-
+            
             for (const [lastName, officerTitle] of Object.entries(CONFIG.classOfficers)) {
                 if (fullName.includes(lastName)) {
                     card.dataset.role = officerTitle;
@@ -931,7 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                 }
             }
-
+            
             for (const [lastName, info] of Object.entries(CONFIG.playRoster)) {
                 if (fullName.includes(lastName)) {
                     if (!card.dataset.role || card.dataset.role === 'Student') {
@@ -949,7 +981,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                 }
             }
-
+            
             for (const [factionKey, lastNames] of Object.entries(CONFIG.factionMap)) {
                 if (lastNames.some(ln => fullName.includes(ln))) {
                     card.dataset.faction = factionKey;
@@ -964,22 +996,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentDay = today.getDate();
         const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
         const shortMonths = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-
+        
         getCards().forEach(card => {
             const rawBday = (card.dataset.birthday || '').trim().toLowerCase();
             if (!rawBday || rawBday === 'n/a') return;
-
+            
             const parts = rawBday.split(/[\/\-\s,]+/).filter(Boolean);
             if (parts.length < 2) return;
-
+            
             const monthPart = parts.at(0);
             const bdayDay = parseInt(parts.at(1), 10);
             let bdayMonth = !isNaN(parseInt(monthPart, 10))
-                ? parseInt(monthPart, 10) - 1
-                : monthNames.indexOf(monthPart);
-
+            ? parseInt(monthPart, 10) - 1
+            : monthNames.indexOf(monthPart);
+            
             if (bdayMonth === -1) bdayMonth = shortMonths.indexOf(monthPart);
-
+            
             if (bdayMonth === currentMonth && bdayDay === currentDay) {
                 card.classList.add('is-birthday');
                 if (card.parentElement && card.parentElement.classList.contains('PersonWrapper')) {
@@ -990,8 +1022,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } // custom bday stuff
     function startPortraitBadges() {
         const teacherCard = document.querySelector('.PeoplePics[data-role="Teacher"]') ||
-            getCards().find(c => c.querySelector('.overlay-text').textContent.toLowerCase().includes('eulogio'));
-
+        getCards().find(c => c.querySelector('.overlay-text').textContent.toLowerCase().includes('eulogio'));
+        
         if (teacherCard) {
             teacherCard.dataset.role = 'Teacher';
             if (teacherCard.parentElement) {
@@ -1002,11 +1034,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 sirObserver.observe(teacherCard, { attributes: true, attributeFilter: ['class'] });
             }
         }
-
+        
         getCards().forEach(card => {
             const wrapper = card.parentElement;
             if (!wrapper) return;
-
+            
             if (card.dataset.filter === 'officer') {
                 const pip = document.createElement('span');
                 pip.className = 'portrait-role-pip pip-officer';
@@ -1063,7 +1095,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="alpha-pill" data-start="Q" data-end="Z">Q – Z</button>
         `;
         DOM.container.insertAdjacentElement('beforebegin', bar);
-
+        
         bar.querySelectorAll('.alpha-pill').forEach(pill => {
             pill.addEventListener('click', () => {
                 const startChar = pill.dataset.start;
@@ -1083,15 +1115,15 @@ document.addEventListener('DOMContentLoaded', () => {
         function getInitials(rawName) {
             const parts = rawName.replace(/,/g, '').split(/\s+/).filter(Boolean);
             return parts.length >= 2
-                ? (parts.at(0).charAt(0) + parts.at(1).charAt(0)).toUpperCase()
-                : rawName.slice(0, 2).toUpperCase();
+            ? (parts.at(0).charAt(0) + parts.at(1).charAt(0)).toUpperCase()
+            : rawName.slice(0, 2).toUpperCase();
         } // gets the initials of first and last (last name priority)
-
+        
         function convertBrokenImg(img) {
             if (!img || img.tagName !== 'IMG' || !img.isConnected) return;
             const card = img.closest('.PeoplePics');
             const isDrawer = img.closest('#panelImageContainer');
-
+            
             if (card) {
                 if (card.querySelector('.monogram-avatar')) return;
                 const rawName = card.querySelector('.overlay-text').textContent.trim();
@@ -1114,15 +1146,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.replaceWith(placeholder);
             }
         } // converts it to funny thing
-
+        
         document.addEventListener('error', (e) => {
             if (e.target && e.target.tagName === 'IMG') convertBrokenImg(e.target);
         }, true); // returns error if happen
-
+        
         document.querySelectorAll('img').forEach(img => {
             if (img.complete && img.naturalWidth === 0) convertBrokenImg(img);
         });
-
+        
         const videoBox = document.querySelector('.video');
         const videoEl = videoBox ? videoBox.querySelector('video') : null;
         if (videoBox && videoEl) {
@@ -1132,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 videoBox.style.borderColor = 'rgba(56, 189, 248, 0.5)';
                 videoBox.style.borderRadius = '16px';
                 videoBox.style.background = 'rgba(5, 10, 35, 0.85)';
-
+                
                 const card = document.createElement('div');
                 card.className = 'video-coming-soon';
                 card.style.cssText = 'padding:44px 20px;text-align:center;color:#e0f2fe;';
@@ -1143,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ].join('');
                 videoBox.appendChild(card);
             }
-
+            
             const sourceEl = videoEl.querySelector('source');
             if (sourceEl) sourceEl.addEventListener('error', showVideoPlaceholder, { once: true });
             videoEl.addEventListener('error', showVideoPlaceholder, { once: true });
@@ -1153,17 +1185,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } // video converter
     } // just in case it's not ready
     //#endregion
-    
     //#region Searching for a world that doesn't exist...
     function filterCards() {
         const allCards = getCards();
         const query = DOM.searchInput ? DOM.searchInput.value.toLowerCase().trim() : '';
         let visibleCount = 0;
-
+        
         if (DOM.clearBtn) {
             DOM.clearBtn.style.display = query.length > 0 ? 'block' : 'none';
         }
-
+        
         allCards.forEach(card => {
             const name = card.querySelector('.overlay-text').textContent.toLowerCase();
             const category = (card.dataset.filter || '').toLowerCase();
@@ -1172,19 +1203,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const teamCategory = (card.dataset.teamCategory || '').toLowerCase();
             const displayRole = (card.dataset.displayRole || baseRole).toLowerCase();
             const character = (card.dataset.character || '').toLowerCase();
-
+            
             const matchesSearch = name.includes(query) || displayRole.includes(query) || teamRole.includes(query) || character.includes(query);
             const filterTarget = STATE.activeRole ? STATE.activeRole.toLowerCase() : 'all';
             const matchesRole = filterTarget === 'all' ||
-                (filterTarget === 'actor' && character !== '') ||
-                category === filterTarget ||
-                baseRole === filterTarget ||
-                teamCategory === filterTarget ||
-                teamRole.includes(filterTarget) ||
-                displayRole.includes(filterTarget);
-
+            (filterTarget === 'actor' && character !== '') ||
+            category === filterTarget ||
+            baseRole === filterTarget ||
+            teamCategory === filterTarget ||
+            teamRole.includes(filterTarget) ||
+            displayRole.includes(filterTarget);
+            
             const matchesFaction = !STATE.activeFaction || card.dataset.faction === STATE.activeFaction;
-
+            
             if (matchesSearch && matchesRole && matchesFaction) {
                 card.classList.remove('is-filtered-out');
                 visibleCount++;
@@ -1192,19 +1223,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.classList.add('is-filtered-out');
             }
         });
-
+        
         if (DOM.matchCountEl) {
             const teacherVisible = allCards.some(c => c.dataset.role === 'Teacher' && !c.classList.contains('is-filtered-out'));
             const guestVisible = allCards.some(c => c.dataset.role === 'Guest Legend' && !c.classList.contains('is-filtered-out'));
             const studentTotal = allCards.filter(c => c.dataset.role !== 'Teacher' && c.dataset.role !== 'Guest Legend').length;
             const studentVisible = visibleCount - (teacherVisible ? 1 : 0) - (guestVisible ? 1 : 0);
-
+            
             if (visibleCount === 0) DOM.matchCountEl.textContent = `No members found out of ${studentTotal} students`;
             else if (teacherVisible && studentVisible === studentTotal) DOM.matchCountEl.textContent = `Showing ${studentTotal} students & Class Adviser`;
             else if (teacherVisible) DOM.matchCountEl.textContent = `Showing ${studentVisible} out of ${studentTotal} students + Class Adviser`;
             else DOM.matchCountEl.textContent = `Showing ${studentVisible} out of ${studentTotal} students`;
         }
-
+        
         STATE.onFilterCards.forEach(fn => fn());
     } // filters it in a lot of ways
     function searchThings() {
@@ -1218,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-
+        
         if (DOM.clearBtn && DOM.searchInput) {
             DOM.clearBtn.addEventListener('click', () => {
                 DOM.searchInput.value = '';
@@ -1226,13 +1257,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 DOM.searchInput.focus();
             });
         }
-
+        
         DOM.filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 DOM.filterBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 STATE.activeRole = btn.dataset.filter;
-
+                
                 if (STATE.activeRole === 'all') {
                     STATE.activeFaction = null;
                     DOM.factionBtns.forEach(b => b.classList.remove('active'));
@@ -1240,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 filterCards();
             });
         });
-
+        
         DOM.factionBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const selected = btn.dataset.faction;
@@ -1255,56 +1286,56 @@ document.addEventListener('DOMContentLoaded', () => {
                 filterCards();
             });
         });
-
+        
         if (DOM.container) {
             const resetWrap = document.createElement('div');
             resetWrap.style.textAlign = 'center';
-
+            
             const resetPill = document.createElement('button');
             resetPill.type = 'button';
             resetPill.className = 'active-reset-pill';
             resetPill.textContent = '↺ Clear All Active Filters';
             resetWrap.appendChild(resetPill);
             DOM.container.insertAdjacentElement('beforebegin', resetWrap);
-
+            
             const emptyCard = document.createElement('div');
             emptyCard.className = 'empty-roster-card';
             emptyCard.innerHTML = `<p>No classmates match that exact combination of filters.</p><button type="button" class="reset-filters-btn">↺ Show Everyone</button>`;
             DOM.container.appendChild(emptyCard);
-
+            
             function resetAllFilters() {
                 if (DOM.searchInput) DOM.searchInput.value = '';
                 const everyoneBtn = document.querySelector('.filter-btn.everyone');
                 if (everyoneBtn) everyoneBtn.click();
             }
-
+            
             resetPill.addEventListener('click', resetAllFilters);
             emptyCard.querySelector('.reset-filters-btn').addEventListener('click', resetAllFilters);
-
+            
             STATE.onFilterCards.push(() => {
                 const hasSearch = DOM.searchInput && DOM.searchInput.value.trim().length > 0;
                 const hasTeam = STATE.activeRole && STATE.activeRole !== 'all';
                 const hasFaction = Boolean(STATE.activeFaction);
                 const hasMatches = getVisibleCards().length > 0;
-
+                
                 resetPill.classList.toggle('visible', (hasSearch || hasTeam || hasFaction) && hasMatches);
                 emptyCard.classList.toggle('visible', !hasMatches);
             });
         }
-
+        
         const spotlightBtn = document.getElementById('spotlightBtn');
         if (spotlightBtn) {
             spotlightBtn.addEventListener('click', () => {
                 const visible = getVisibleCards();
                 if (!visible.length) return;
-
+                
                 let ticks = 0;
                 const spinInterval = setInterval(() => {
                     getCards().forEach(c => c.classList.remove('active'));
                     const randomCard = visible.at(Math.floor(Math.random() * visible.length));
                     randomCard.classList.add('active');
                     ticks++;
-
+                    
                     if (ticks >= 12) {
                         clearInterval(spinInterval);
                         openCard(randomCard);
@@ -1315,15 +1346,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     //#endregion
-    
     //#region 2nd option- I mean Side Panel
     function openCard(card) {
         if (!card) return;
-
+        
         for (const hook of STATE.onOpenCard) {
             if (hook(card) === true) return;
         }
-
+        
         const name = card.querySelector('.overlay-text').textContent;
         const imgSrc = card.querySelector('img').src;
         const bday = card.dataset.birthday || 'N/A';
@@ -1331,21 +1361,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const displayRole = card.dataset.displayRole || baseRole;
         const badgeClass = baseRole.toLowerCase().replace(/\s+/g, '-');
         const bio = card.dataset.bio || 'No description provided.';
-
+        
         const teamRole = card.dataset.team || '';
         const teamCategory = card.dataset.teamCategory || teamRole;
         const teamClass = teamCategory.toLowerCase().replace(/\s+/g, '-');
         const teamBadgeHTML = teamRole ? `<span class="panel-badge ${teamClass}">${teamRole}</span>` : '';
-
+        
         const character = card.dataset.character || '';
         const characterHTML = character
-            ? `<div class="meta-item" style="margin-bottom:8px;"><span class="meta-label">Play Character</span><span class="meta-value" style="color:#f472b6;font-weight:bold;"> ${character}</span></div>`
-            : '';
-
+        ? `<div class="meta-item" style="margin-bottom:8px;"><span class="meta-label">Play Character</span><span class="meta-value" style="color:#f472b6;font-weight:bold;"> ${character}</span></div>`
+        : '';
+        
         const birthdayBanner = card.classList.contains('is-birthday')
-            ? `<div style="margin-top:12px;padding:8px 12px;background:rgba(255,215,0,0.15);border:1px solid #ffd700;border-radius:8px;color:#ffd700;font-weight:bold;text-align:center;"> Happy Birthday Today! </div>`
-            : '';
-
+        ? `<div style="margin-top:12px;padding:8px 12px;background:rgba(255,215,0,0.15);border:1px solid #ffd700;border-radius:8px;color:#ffd700;font-weight:bold;text-align:center;"> Happy Birthday Today! </div>`
+        : '';
+        
         let birthdayMetaHTML = '';
         if (bday && bday !== 'N/A' && bday.toLowerCase() !== 'month dd, yyyy') {
             const parsed = new Date(bday);
@@ -1361,13 +1391,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 birthdayMetaHTML = `<div class="meta-item"><span class="meta-label">Birthday</span><span class="meta-value">${bday}<span style="color:#fde047;font-weight:bold;">${tag}</span></span></div>`;
             }
         }
-
+        
         if (DOM.verity) {
             if (baseRole === 'Teacher') DOM.verity.textContent = 'Teacher Information';
             else if (baseRole === 'Guest Legend') DOM.verity.textContent = 'VIP Guest Information';
             else DOM.verity.textContent = 'Student Information';
         }
-
+        
         const monoEl = card.querySelector('.monogram-avatar');
         const isCustomPfpActive = card.querySelector('img.is-zerotwo-pfp, img.is-carl-pfp, img.is-cortis-pfp, img.is-kobe-pfp, img.is-vox-pfp, img.is-alastor-pfp, img.is-newton-pfp, img.is-guest-alter-pfp');
         if (isCustomPfpActive) {
@@ -1395,19 +1425,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="bio-text">${bio}</p>
             </div>
         `;
-
+        
         renderPanelConnections(card);
         renderShareButton(card);
-
+        
         requestAnimationFrame(() => {
             const glowStyles = window.getComputedStyle(card);
             DOM.panelImageContainer.style.borderColor = glowStyles.borderColor;
             DOM.panelImageContainer.style.boxShadow = glowStyles.boxShadow;
         });
-
+        
         getCards().forEach(c => c.classList.remove('active'));
         card.classList.add('active');
-
+        
         const wasAlreadyOpen = DOM.panel.classList.contains('active');
         if (!wasAlreadyOpen) {
             const docks = new Array('right', 'left', 'bottom', 'center');
@@ -1418,18 +1448,18 @@ document.addEventListener('DOMContentLoaded', () => {
             void DOM.panel.offsetWidth;
             DOM.panel.style.transition = '';
         }
-
+        
         DOM.panel.classList.add('active');
         if (DOM.overlay) DOM.overlay.classList.add('active');
         document.body.classList.add('panel-is-open');
         updateSplitGridLayout();
-
+        
         if (baseRole === 'Teacher') {
             if (card.parentElement) card.parentElement.classList.add('sir-sun-active');
             playTeacherChord();
         }
     }
-
+    
     function closePanel() {
         const wasOpen = DOM.panel && DOM.panel.classList.contains('active');
         if (DOM.panel) DOM.panel.classList.remove('active');
@@ -1448,22 +1478,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function navigatePanel(step) {
         const visibleCards = getVisibleCards();
         if (!visibleCards.length) return;
-
+        
         const activeCard = document.querySelector('.PeoplePics.active');
         let nextIndex = visibleCards.indexOf(activeCard) + step;
         if (nextIndex >= visibleCards.length) nextIndex = 0;
         if (nextIndex < 0) nextIndex = visibleCards.length - 1;
-
+        
         openCard(visibleCards.at(nextIndex));
     }
     function renderPanelConnections(activeCard) {
         const allCards = getCards();
         const faction = activeCard.dataset.faction || '';
         const team = activeCard.dataset.team || activeCard.dataset.role || '';
-
+        
         let label = '';
         let matches = [];
-
+        
         if (faction && faction !== 'None') {
             label = `In ${CONFIG.factionLabels[faction] || faction}`;
             matches = allCards.filter(c => c !== activeCard && c.dataset.faction === faction);
@@ -1471,18 +1501,18 @@ document.addEventListener('DOMContentLoaded', () => {
             label = `Also in ${team}`;
             matches = allCards.filter(c => c !== activeCard && (c.dataset.team === team || c.dataset.role === team));
         }
-
+        
         if (!matches.length) return;
-
+        
         const box = document.createElement('div');
         box.className = 'panel-connections';
         box.innerHTML = `<span class="connections-title"> ${label}</span><div class="connections-pills"></div>`;
-
+        
         const pillWrap = box.querySelector('.connections-pills');
         matches.forEach(targetCard => {
             const raw = (targetCard.querySelector('.overlay-text')?.textContent || '').trim();
             const lastName = (raw.split(',').at(0) || raw).trim();
-
+            
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'connection-pill';
@@ -1493,14 +1523,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             pillWrap.appendChild(btn);
         });
-
+        
         DOM.panelBody.appendChild(box);
     }
     function renderShareButton(card) {
         const fullName = card.querySelector('.overlay-text').textContent.trim();
         const slug = fullName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         history.replaceState(null, '', `#${slug}`);
-
+        
         const shareBtn = document.createElement('button');
         shareBtn.type = 'button';
         shareBtn.className = 'share-profile-btn';
@@ -1511,35 +1541,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => { shareBtn.textContent = ' Copy Direct Link to Profile'; }, 2000);
             });
         });
-
+        
         DOM.panelBody.appendChild(shareBtn);
     }
     function startSidePanel() {
         let lockedCard = null;
-
+        
         if (DOM.container) {
             DOM.container.addEventListener('click', (e) => {
                 const card = e.target.closest('.PeoplePics');
                 if (!card) return;
-
+                
                 if (lockedCard === card) return;
-
+                
                 if (DOM.panel && DOM.panel.classList.contains('active') && card.classList.contains('active')) {
                     lockedCard = card;
                     closePanel();
                     return;
                 }
-
+                
                 lockedCard = null;
                 openCard(card);
             });
         }
-
+        
         if (DOM.closeBtn) DOM.closeBtn.addEventListener('click', closePanel);
         if (DOM.overlay) DOM.overlay.addEventListener('click', closePanel);
         if (DOM.prevCardBtn) DOM.prevCardBtn.addEventListener('click', () => navigatePanel(-1));
         if (DOM.nextCardBtn) DOM.nextCardBtn.addEventListener('click', () => navigatePanel(1));
-
+        
         window.addEventListener('click', (e) => {
             const clickedCard = e.target.closest('.PeoplePics');
             if (!clickedCard || clickedCard !== lockedCard) {
@@ -1549,21 +1579,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 closePanel();
             }
         });
-
+        
         let touchStartX = 0;
         let touchStartY = 0;
-
+        
         if (DOM.panel) {
             DOM.panel.addEventListener('touchstart', (e) => {
                 touchStartX = e.changedTouches[0].screenX;
                 touchStartY = e.changedTouches[0].screenY;
             }, { passive: true });
-
+            
             DOM.panel.addEventListener('touchend', (e) => {
                 if (e.target.closest('button')) return;
                 const diffX = e.changedTouches[0].screenX - touchStartX;
                 const diffY = e.changedTouches[0].screenY - touchStartY;
-
+                
                 if (Math.abs(diffX) > 55 && Math.abs(diffX) > Math.abs(diffY)) {
                     navigatePanel(diffX < 0 ? 1 : -1);
                 } else if (diffY > 75 && DOM.panel.scrollTop <= 0) {
@@ -1571,7 +1601,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, { passive: true });
         }
-
+        
         const initialHash = window.location.hash.replace('#', '').toLowerCase();
         if (initialHash) {
             const match = getCards().find(card => {
@@ -1587,17 +1617,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     //#endregion
-    
     //#region Stuff
     function startCompareModal() {
         let firstCard = null;
         let waitingForSecond = false;
-
+        
         const toast = document.createElement('div');
         toast.className = 'compare-toast';
         toast.innerHTML = `<span id="compareToastText"> Click any 2nd classmate to compare</span><button type="button" class="compare-cancel-btn">Cancel</button>`;
         document.body.appendChild(toast);
-
+        
         const modalOverlay = document.createElement('div');
         modalOverlay.className = 'vip-modal-overlay';
         modalOverlay.innerHTML = `
@@ -1608,36 +1637,36 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         document.body.appendChild(modalOverlay);
-
+        
         const gridBody = modalOverlay.querySelector('#compareGridBody');
         const closeModalBtn = modalOverlay.querySelector('.vip-close-btn');
-
+        
         function cancelComparePick() {
             waitingForSecond = false;
             firstCard = null;
             toast.classList.remove('active');
         }
-
+        
         toast.querySelector('.compare-cancel-btn').addEventListener('click', cancelComparePick);
         closeModalBtn.addEventListener('click', () => modalOverlay.classList.remove('active'));
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) modalOverlay.classList.remove('active');
         });
-
+        
         function buildColumnHTML(card) {
             const name = card.querySelector('.overlay-text').textContent.trim();
             const imgSrc = card.querySelector('img').src;
             const monoEl = card.querySelector('.monogram-avatar');
             const avatarHTML = monoEl
-                ? `<div class="compare-avatar monogram-avatar" style="font-size:34px;">${monoEl.textContent}</div>`
-                : `<img class="compare-avatar" src="${imgSrc}" alt="${name}">`;
-
+            ? `<div class="compare-avatar monogram-avatar" style="font-size:34px;">${monoEl.textContent}</div>`
+            : `<img class="compare-avatar" src="${imgSrc}" alt="${name}">`;
+            
             const role = card.dataset.displayRole || card.dataset.role || 'Student';
             const team = card.dataset.team ? ` • ${card.dataset.team}` : '';
             const character = card.dataset.character || 'Behind-the-Scenes Crew';
             const faction = CONFIG.factionLabels[card.dataset.faction] || 'Production & Faculty';
             const bio = card.dataset.bio || 'No description provided.';
-
+            
             return `
                 <div class="compare-col">
                     ${avatarHTML}
@@ -1649,7 +1678,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         }
-
+        
         function renderComparison(cardA, cardB) {
             gridBody.innerHTML = `
                 ${buildColumnHTML(cardA)}
@@ -1659,17 +1688,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 ${buildColumnHTML(cardB)}
             `;
-
+            
             gridBody.querySelector('.compare-swap-btn').addEventListener('click', () => {
                 renderComparison(cardB, cardA);
                 playBeep(640, 0.06, 'sine', 0.035);
             });
-
+            
             modalOverlay.classList.add('active');
             playBeep(520, 0.08, 'sine', 0.04);
             setTimeout(() => playBeep(740, 0.12, 'sine', 0.04), 80);
         }
-
+        
         STATE.onOpenCard.push((card) => {
             if (waitingForSecond && card && card !== firstCard) {
                 const savedFirst = firstCard;
@@ -1678,7 +1707,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderComparison(savedFirst, card);
                 return true;
             }
-
+            
             requestAnimationFrame(() => {
                 if (!DOM.panelBody || DOM.panelBody.querySelector('.compare-trigger-btn')) return;
                 const cmpBtn = document.createElement('button');
@@ -1702,7 +1731,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function startPlaybillModal() {
         const openBtn = document.getElementById('openPlaybillBtn');
         if (!openBtn) return;
-
+        
         const modalOverlay = document.createElement('div');
         modalOverlay.className = 'vip-modal-overlay';
         modalOverlay.innerHTML = `
@@ -1717,10 +1746,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         document.body.appendChild(modalOverlay);
-
+        
         const bodyEl = modalOverlay.querySelector('#creditsRollBody');
         const closeModalBtn = modalOverlay.querySelector('.vip-close-btn');
-
+        
         function buildCredits() {
             const cards = getCards();
             const groups = {
@@ -1728,7 +1757,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ' Class Officers': [],
                 ' Production & Technical Crew': []
             };
-
+            
             cards.forEach(card => {
                 const name = card.querySelector('.overlay-text').textContent.trim();
                 if (card.dataset.character) groups[' Cast & Characters'].push({ name, role: card.dataset.character });
@@ -1736,7 +1765,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const crew = card.dataset.team || (card.dataset.filter !== 'officer' && card.dataset.role !== 'Student' ? (card.dataset.displayRole || card.dataset.role) : '');
                 if (crew) groups[' Production & Technical Crew'].push({ name, role: crew });
             });
-
+            
             const statsHTML = `
                 <div class="playbill-stats-grid">
                     <div class="playbill-stat-box"><span class="playbill-stat-num">${cards.length}</span><span class="playbill-stat-lbl">Roster</span></div>
@@ -1745,16 +1774,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="playbill-stat-box"><span class="playbill-stat-num">${groups[' Production & Technical Crew'].length}</span><span class="playbill-stat-lbl">Crew Leads</span></div>
                 </div>
             `;
-
+            
             const groupsHTML = Object.entries(groups).map(([title, list]) => `
                 <div class="credits-group">
                     <h4>${title} (${list.length})</h4>
                     ${list.map(item => `<div class="credits-entry"><span class="credits-person">${item.name}</span><span class="credits-role-label">${item.role}</span></div>`).join('')}
                 </div>
             `).join('');
-
+            
             bodyEl.innerHTML = `${statsHTML}${groupsHTML}<button type="button" class="playbill-print-btn" id="playbillPrintTrigger"> Print / Save PDF Program</button>`;
-
+            
             const printBtn = bodyEl.querySelector('#playbillPrintTrigger');
             if (printBtn) {
                 printBtn.addEventListener('click', () => {
@@ -1763,7 +1792,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         }
-
+        
         openBtn.addEventListener('click', () => {
             buildCredits();
             modalOverlay.classList.add('active');
@@ -1785,30 +1814,30 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="pitch-close-btn" title="Exit Tour Guide (P)">&times;</button>
         `;
         document.body.appendChild(pitchBar);
-
+        
         const stepBtns = pitchBar.querySelectorAll('.pitch-step-btn');
         let currentStep = -1;
-
+        
         function goToStep(idx) {
             currentStep = idx;
             stepBtns.forEach((b, i) => b.classList.toggle('current', i === idx));
-
+            
             if (idx === 0) window.scrollTo({ top: 0, behavior: 'smooth' });
             else if (idx === 1) document.querySelector('.synopsis-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             else if (idx === 2) document.querySelector('.timeline-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             else if (idx === 3) document.querySelector('.filter-bar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             else if (idx === 4) document.getElementById('openPlaybillBtn')?.click();
-
+            
             playBeep(580, 0.05, 'sine', 0.03);
         }
-
+        
         stepBtns.forEach(btn => btn.addEventListener('click', () => goToStep(Number(btn.dataset.step))));
         pitchBar.querySelector('.pitch-close-btn').addEventListener('click', () => pitchBar.classList.remove('active'));
-
+        
         window.addEventListener('keydown', (e) => {
             if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) return;
             if (document.querySelectorAll('.vip-modal-overlay.active').length > 0 && e.key.toLowerCase() !== 'p') return;
-
+            
             if (e.key.toLowerCase() === 'p') {
                 e.preventDefault();
                 const isOpening = !pitchBar.classList.contains('active');
@@ -1821,49 +1850,48 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } // guide
     //#endregion
-    
     //#region Physics
     function startDecorativeWaves() {
-    function generateWaveSvg(isVertical = false) {
-        let path = isVertical ? 'M 10 0 ' : 'M 0 10 ';
-        for (let i = 0; i < 20; i++) {
-            const height = (i % 2 === 0) ? 10 - (Math.random() * 10) : 10 + (Math.random() * 10);
-            const mid = i * 20 + 10;
-            const end = (i + 1) * 20;
-            path += isVertical ? `Q ${height} ${mid}, 10 ${end} ` : `Q ${mid} ${height}, ${end} 10 `;
+        function generateWaveSvg(isVertical = false) {
+            let path = isVertical ? 'M 10 0 ' : 'M 0 10 ';
+            for (let i = 0; i < 20; i++) {
+                const height = (i % 2 === 0) ? 10 - (Math.random() * 10) : 10 + (Math.random() * 10);
+                const mid = i * 20 + 10;
+                const end = (i + 1) * 20;
+                path += isVertical ? `Q ${height} ${mid}, 10 ${end} ` : `Q ${mid} ${height}, ${end} 10 `;
+            }
+            path += isVertical ? 'L 0 400 L 0 0 Z' : 'L 400 20 L 0 20 Z';
+            const viewBox = isVertical ? '0 0 20 400' : '0 0 400 20';
+            return `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"><path fill="%230099ff" d="${path}"/></svg>')`;
         }
-        path += isVertical ? 'L 0 400 L 0 0 Z' : 'L 400 20 L 0 20 Z';
-        const viewBox = isVertical ? '0 0 20 400' : '0 0 400 20';
-        return `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}"><path fill="%230099ff" d="${path}"/></svg>')`;
+        
+        document.documentElement.style.setProperty('--wave-img', generateWaveSvg(false));
+        document.documentElement.style.setProperty('--wave-do', generateWaveSvg(true));
+        document.documentElement.style.setProperty('--wave-dir', Math.random() < 0.5 ? 'reverse' : 'normal');
     }
-
-    document.documentElement.style.setProperty('--wave-img', generateWaveSvg(false));
-    document.documentElement.style.setProperty('--wave-do', generateWaveSvg(true));
-    document.documentElement.style.setProperty('--wave-dir', Math.random() < 0.5 ? 'reverse' : 'normal');
-}
     function startParticleCanvas() {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
+        
         const canvas = document.createElement('canvas');
         canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:10000;';
         document.body.appendChild(canvas);
-
+        
         const ctx = canvas.getContext('2d');
         let animRunning = false;
-
+        
         function syncSize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
         syncSize();
         window.addEventListener('resize', syncSize, { passive: true });
-
+        
         function renderLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+            
             for (let i = STATE.particles.length - 1; i >= 0; i--) {
                 const p = STATE.particles.at(i);
-
+                
                 if (p.type === 'SHOCKWAVE') {
                     p.radius += 1.8;
                     p.alpha -= 0.04;
@@ -1897,25 +1925,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     ctx.restore();
                 }
             }
-
+            
             if (STATE.particles.length > 0) {
                 requestAnimationFrame(renderLoop);
             } else {
                 animRunning = false;
             }
         }
-
+        
         window.wakeParticleCanvas = function () {
             if (!animRunning) {
                 animRunning = true;
                 requestAnimationFrame(renderLoop);
             }
         };
-
+        
         window.addEventListener('pointerdown', (e) => {
             const ringColor = STATE.partyModeOn ? '#00FF66' : '#38bdf8';
             const colors = STATE.partyModeOn ? ['#00FF66', '#00BCFF'] : ['#38bdf8', '#facc15'];
-
+            
             STATE.particles.push({
                 type: 'SHOCKWAVE',
                 x: e.clientX,
@@ -1925,7 +1953,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alpha: 1.0,
                 color: ringColor
             });
-
+            
             spawnBurst(e.clientX, e.clientY, colors, 16);
             window.wakeParticleCanvas();
         }, { passive: true });
@@ -1933,18 +1961,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function startCursorGlow() {
         
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
+        
         const glow = document.createElement('div');
         glow.style.cssText = 'position:fixed;left:0;top:0;width:440px;height:440px;border-radius:50%;pointer-events:none;z-index:2;transform:translate(-50%,-50%);opacity:0;transition:opacity 0.65s ease-out;';
         document.body.appendChild(glow);
-
+        
         let targetX = window.innerWidth / 2;
         let targetY = window.innerHeight / 2;
         let currentX = targetX;
         let currentY = targetY;
         let running = false;
         let touchFadeTimer = null;
-
+        
         function updateGlowColor() {
             if (STATE.lockdownOn) {
                 glow.style.background = 'radial-gradient(circle, rgba(225,29,72,0.28) 0%, rgba(225,29,72,0.08) 40%, transparent 70%)';
@@ -1958,14 +1986,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 glow.style.background = 'radial-gradient(circle, rgba(56,189,248,0.26) 0%, rgba(0,153,255,0.08) 40%, transparent 70%)';
             }
         }
-
+        
         function animateGlow() {
             currentX += (targetX - currentX) * 0.14;
             currentY += (targetY - currentY) * 0.14;
             glow.style.left = `${currentX}px`;
             glow.style.top = `${currentY}px`;
             updateGlowColor();
-
+            
             const dist = Math.hypot(targetX - currentX, targetY - currentY);
             if (glow.style.opacity !== '0' || dist > 0.5) {
                 requestAnimationFrame(animateGlow);
@@ -1973,7 +2001,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 running = false;
             }
         }
-
+        
         function moveSpotlight(x, y, isTouch) {
             if (STATE.ldmActive) {
                 glow.style.opacity = '0';
@@ -1982,13 +2010,13 @@ document.addEventListener('DOMContentLoaded', () => {
             targetX = x;
             targetY = y;
             clearTimeout(touchFadeTimer);
-
+            
             if (glow.style.opacity === '0' && !running) {
                 currentX = targetX;
                 currentY = targetY;
             }
             glow.style.opacity = '1';
-
+            
             if (!running) {
                 running = true;
                 requestAnimationFrame(animateGlow);
@@ -1997,15 +2025,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 touchFadeTimer = setTimeout(() => { glow.style.opacity = '0'; }, 950);
             }
         }
-
+        
         window.addEventListener('pointermove', (e) => {
             if (e.pointerType !== 'touch') moveSpotlight(e.clientX, e.clientY, false);
         }, { passive: true });
-
-         window.addEventListener('touchstart', (e) => {
+        
+        window.addEventListener('touchstart', (e) => {
             if (e.touches.length > 0) moveSpotlight(e.touches[0].clientX, e.touches[0].clientY, true);
         }, { passive: true });
-
+        
         window.addEventListener('touchmove', (e) => {
             if (e.touches.length > 0) moveSpotlight(e.touches[0].clientX, e.touches[0].clientY, true);
         }, { passive: true });
@@ -2020,27 +2048,27 @@ document.addEventListener('DOMContentLoaded', () => {
         let pointerY = -9999;
         let lastScrollY = window.scrollY;
         let loopRunning = false;
-
+        
         let bodies = [];
-
+        
         function rebuildPhysicsCache() {
             const scrollX = window.scrollX;
             const scrollY = window.scrollY;
             const existingMap = new Map(bodies.map(b => [b.card, b]));
-
+            
             bodies = getCards().map(card => {
                 const wrapper = card.parentElement || card;
                 const prevTransform = wrapper.style.transform;
                 wrapper.style.transition = 'none';
                 wrapper.style.transform = '';
-
+                
                 const rect = wrapper.getBoundingClientRect();
                 const radius = rect.width / 2;
                 const docHomeX = rect.left + scrollX + radius;
                 const docHomeY = rect.top + scrollY + radius;
-
+                
                 wrapper.style.transform = prevTransform;
-
+                
                 const existing = existingMap.get(card);
                 if (existing) {
                     existing.radius = radius;
@@ -2048,7 +2076,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     existing.docHomeY = docHomeY;
                     return existing;
                 }
-
+                
                 return {
                     card, wrapper, radius, docHomeX, docHomeY,
                     x: 0, y: 0, vx: 0, vy: 0,
@@ -2057,13 +2085,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
         }
-
+        
         window.refreshPortraitPhysicsCache = rebuildPhysicsCache;
         rebuildPhysicsCache();
-
+        
         window.addEventListener('resize', rebuildPhysicsCache, { passive: true });
         STATE.onFilterCards.push(() => requestAnimationFrame(rebuildPhysicsCache));
-
+        
         function stepPhysics() {
             if (STATE.ldmActive) {
                 loopRunning = false;
@@ -2076,7 +2104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const focalY = viewH * 0.48;
             const scrollX = window.scrollX;
             const scrollY = window.scrollY;
-
+            
             bodies.forEach(b => {
                 if (b.card.classList.contains('is-filtered-out')) {
                     if (b.tilting || b.grav > 0 || Math.abs(b.x) > 0.05 || Math.abs(b.y) > 0.05) {
@@ -2090,18 +2118,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return;
                 }
-
+                
                 const radius = b.radius;
                 const homeX = b.docHomeX - scrollX;
                 const homeY = b.docHomeY - scrollY;
                 const dx = pointerX - homeX;
                 const dy = pointerY - homeY;
                 const dist = Math.hypot(dx, dy);
-
+                
                 b.tilting = !motionPaused && !isTouchPrimary && (b.tilting ? dist <= radius * 1.08 : dist <= radius * 0.95);
-
+                
                 let targetX = 0, targetY = 0, targetRx = 0, targetRy = 0, targetScale = 1, targetGrav = 0;
-
+                
                 if (b.tilting) {
                     const normX = Math.min(1, Math.max(0, (dx + radius) / (radius * 2)));
                     const normY = Math.min(1, Math.max(0, (dy + radius) / (radius * 2)));
@@ -2109,7 +2137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     targetRy = (normX - 0.5) * 30;
                     targetScale = 1.08;
                     targetGrav = 1;
-
+                    
                     b.wrapper.classList.add('is-tilting');
                     b.card.style.setProperty('--glare-x', `${(normX * 100).toFixed(1)}%`);
                     b.card.style.setProperty('--glare-y', `${(normY * 100).toFixed(1)}%`);
@@ -2130,13 +2158,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 }
-
+                
                 b.vx = (b.vx + (targetX - b.x) * stiffness) * damping;
                 b.vy = (b.vy + (targetY - b.y) * stiffness) * damping;
                 b.vrx = (b.vrx + (targetRx - b.rx) * stiffness) * damping;
                 b.vry = (b.vry + (targetRy - b.ry) * stiffness) * damping;
                 b.vScale = (b.vScale + (targetScale - b.scale) * stiffness) * damping;
-
+                
                 b.x += b.vx;
                 b.y += b.vy;
                 b.vrx = Math.max(-14, Math.min(14, b.vrx));
@@ -2145,13 +2173,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 b.ry = Math.max(-60, Math.min(60, b.ry + b.vry));
                 b.scale += b.vScale;
                 b.grav += (targetGrav - b.grav) * 0.2;
-
+                
                 const isMoving = Math.abs(b.vx) > 0.01 || Math.abs(b.vy) > 0.01 ||
-                    Math.abs(b.vrx) > 0.01 || Math.abs(b.vry) > 0.01 ||
-                    Math.abs(targetX - b.x) > 0.05 || Math.abs(targetY - b.y) > 0.05 ||
-                    Math.abs(targetRx - b.rx) > 0.05 || Math.abs(targetRy - b.ry) > 0.05 ||
-                    Math.abs(targetScale - b.scale) > 0.002 || b.tilting || b.grav > 0.005;
-
+                Math.abs(b.vrx) > 0.01 || Math.abs(b.vry) > 0.01 ||
+                Math.abs(targetX - b.x) > 0.05 || Math.abs(targetY - b.y) > 0.05 ||
+                Math.abs(targetRx - b.rx) > 0.05 || Math.abs(targetRy - b.ry) > 0.05 ||
+                Math.abs(targetScale - b.scale) > 0.002 || b.tilting || b.grav > 0.005;
+                
                 if (isMoving) {
                     anyActive = true;
                     b.card.style.setProperty('--grav', b.grav.toFixed(3));
@@ -2161,35 +2189,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     b.wrapper.style.transform = '';
                 }
             });
-
+            
             if (anyActive) requestAnimationFrame(stepPhysics);
             else loopRunning = false;
         }
-
+        
         function wakePhysics() {
             if (!loopRunning) {
                 loopRunning = true;
                 requestAnimationFrame(stepPhysics);
             }
         }
-
+        
         window.addEventListener('pointermove', (e) => {
             if (e.pointerType === 'touch') return;
             pointerX = e.clientX;
             pointerY = e.clientY;
             wakePhysics();
         }, { passive: true });
-
+        
         window.addEventListener('scroll', () => {
             const currentScrollY = window.scrollY;
             const deltaY = currentScrollY - lastScrollY;
             lastScrollY = currentScrollY;
-
+            
             if (isTouchPrimary || pointerX === -9999) {
                 const viewH = window.innerHeight;
                 const impulseY = Math.max(-4.5, Math.min(4.5, -deltaY * 0.045));
                 const impulseRx = Math.max(-6, Math.min(6, deltaY * 0.075));
-
+                
                 bodies.forEach(b => {
                     if (b.card.classList.contains('is-filtered-out')) return;
                     const homeY = b.docHomeY - currentScrollY;
@@ -2201,7 +2229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 wakePhysics();
             }
         }, { passive: true });
-
+        
         document.addEventListener('mouseleave', () => {
             pointerX = -9999;
             pointerY = -9999;
@@ -2209,13 +2237,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     function startScrollEffects() {
-        const revealTargets = document.querySelectorAll('.synopsis-card, .search-wrapper, .filter-bar, .faction-bar, .PersonWrapper, .teaser-footer');
+        const revealTargets = document.querySelectorAll('.synopsis-card, .faq-section, .feedback-section, .search-wrapper, .filter-bar, .faction-bar, .PersonWrapper, .teaser-footer');
+        
         if (revealTargets.length) {
             revealTargets.forEach(el => el.classList.add('reveal-on-scroll'));
-
+            
             const observer = new IntersectionObserver((entries) => {
                 const intersectingWrappers = [];
-
+                
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         if (entry.target.classList.contains('PersonWrapper')) {
@@ -2229,7 +2258,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         entry.target.classList.remove('is-visible');
                     }
                 });
-
+                
                 if (intersectingWrappers.length) {
                     const rows = new Map();
                     intersectingWrappers.forEach(el => {
@@ -2237,7 +2266,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!rows.has(rowKey)) rows.set(rowKey, []);
                         rows.get(rowKey).push(el);
                     });
-
+                    
                     const sortedRowKeys = Array.from(rows.keys()).sort((a, b) => a - b);
                     sortedRowKeys.forEach((key, rowIdx) => {
                         const rowCards = rows.get(key).sort((a, b) => a.offsetLeft - b.offsetLeft);
@@ -2250,11 +2279,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             }, { threshold: 0.02, rootMargin: '0px 0px -33% 0px' });
-
+            
             requestAnimationFrame(() => {
                 revealTargets.forEach(el => observer.observe(el));
             });
-
+            
             window.addEventListener('scroll', () => {
                 if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 24) {
                     const remaining = Array.from(revealTargets).filter(el => !el.classList.contains('is-visible'));
@@ -2266,18 +2295,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, { passive: true });
         }
-
+        
         const progressBar = document.createElement('div');
         progressBar.className = 'scroll-progress-bar';
         document.body.appendChild(progressBar);
-
+        
         const topBtn = document.createElement('button');
         topBtn.type = 'button';
         topBtn.className = 'back-to-top-btn';
         topBtn.textContent = '↑ Top';
         topBtn.title = 'Scroll Back to Top';
         document.body.appendChild(topBtn);
-
+        
         topBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             playBeep(520, 0.05, 'sine', 0.03);
@@ -2288,26 +2317,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const ldmBtn = document.createElement('button');
         ldmBtn.type = 'button';
         ldmBtn.className = 'ldm-toggle-btn';
-
+        
         let ldmOn = localStorage.getItem('afcs_ldm') === 'true';
-
+        
         function syncLDM() {
             STATE.ldmActive = ldmOn;
             document.body.classList.toggle('ldm-active', ldmOn);
             ldmBtn.classList.toggle('is-active', ldmOn);
             ldmBtn.textContent = ldmOn ? ' LDM: ON' : ' LDM: OFF';
             ldmBtn.title = ldmOn
-                ? 'Low Detail Mode Active (Click for Full Visuals)'
-                : 'Enable Low Detail Mode for smoother FPS';
-
+            ? 'Low Detail Mode Active (Click for Full Visuals)'
+            : 'Enable Low Detail Mode for smoother FPS';
+            
             if (!ldmOn && typeof window.wakeStarCanvas === 'function') {
                 window.wakeStarCanvas();
             }
         }
-
+        
         syncLDM();
         document.body.appendChild(ldmBtn);
-
+        
         ldmBtn.addEventListener('click', () => {
             ldmOn = !ldmOn;
             localStorage.setItem('afcs_ldm', String(ldmOn));
@@ -2316,7 +2345,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     //#endregion
-    
     //#region Quirks
     /*
     The Names SHOULD be self explanatory, so just read it, should be easy
@@ -2325,7 +2353,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function startWeatherWidget() {
         const eventBar = document.querySelector('.event-details-bar');
         if (!eventBar) return;
-
+        
         const weatherCard = document.createElement('div');
         weatherCard.className = 'event-detail-item weather-flip-card';
         weatherCard.title = 'Click to switch between Antipolo & Dubai';
@@ -2337,13 +2365,13 @@ document.addEventListener('DOMContentLoaded', () => {
             '</div>'
         ].join('');
         eventBar.appendChild(weatherCard);
-
+        
         const iconEl = weatherCard.querySelector('#weatherIcon');
         const labelEl = weatherCard.querySelector('#weatherLabel');
         const valueEl = weatherCard.querySelector('#weatherValue');
         const cache = { Antipolo: null, Dubai: null };
         let activeCity = 'Antipolo';
-
+        
         function getCityHour(city) {
             const tz = city === 'Dubai' ? 'Asia/Dubai' : 'Asia/Manila';
             const hourStr = new Intl.DateTimeFormat('en-US', {
@@ -2353,7 +2381,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }).format(new Date());
             return parseInt(hourStr, 10) % 24;
         }
-
+        
         function getCityClock(city) {
             const tz = city === 'Dubai' ? 'Asia/Dubai' : 'Asia/Manila';
             return new Intl.DateTimeFormat('en-US', {
@@ -2363,12 +2391,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 hour12: true
             }).format(new Date());
         }
-
+        
         function pickWeatherIcon(desc, city) {
             const lower = (desc || '').toLowerCase();
             const hour = getCityHour(city);
             const isNight = hour >= 18 || hour < 6;
-
+            
             if (lower.includes('thunder')) return '';
             if (lower.includes('rain') || lower.includes('drizzle') || lower.includes('shower')) return '';
             if (lower.includes('fog') || lower.includes('mist') || lower.includes('haze')) return '';
@@ -2376,7 +2404,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (lower.includes('partly')) return isNight ? '' : '';
             return isNight ? '' : '';
         }
-
+        
         function decodeWmoCode(code) {
             if (code === 0) return 'Clear Sky';
             if (code <= 3) return 'Partly Cloudy';
@@ -2386,7 +2414,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (code <= 82) return 'Rain Showers';
             return 'Thunderstorm';
         }
-
+        
         function renderCity(city) {
             const info = cache[city];
             if (!info) {
@@ -2399,51 +2427,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 iconEl.textContent = city === 'Dubai' ? '' : '';
                 labelEl.textContent = city === 'Dubai' ? 'Dubai (Burj Khalifa) ⇄' : 'Venue Status ⇄';
                 valueEl.textContent = city === 'Dubai'
-                    ? `${getCityClock('Dubai')} • Clear Desert Sky`
-                    : 'Covered Court (Rain or Shine)';
+                ? `${getCityClock('Dubai')} • Clear Desert Sky`
+                : 'Covered Court (Rain or Shine)';
                 return;
             }
             iconEl.textContent = pickWeatherIcon(info.desc, city);
             labelEl.textContent = `${city} (${getCityClock(city)}) ⇄`;
             valueEl.textContent = `${info.temp}°C • ${info.desc}`;
         }
-
+        
         function fetchCityWeather(city) {
             const coords = city === 'Dubai'
-                ? 'latitude=25.1972&longitude=55.2744'
-                : 'latitude=14.5864&longitude=121.1753';
-
+            ? 'latitude=25.1972&longitude=55.2744'
+            : 'latitude=14.5864&longitude=121.1753';
+            
             const domain = ['api', 'open-meteo', 'com'].join('.');
             const url = 'https:' + '//' + domain + '/v1/forecast?' + coords + '&current_weather=true';
-
+            
             fetch(url)
-                .then(res => {
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    return res.json();
-                })
-                .then(data => {
-                    if (!data.current_weather) throw new Error('Missing current_weather');
-                    cache[city] = {
-                        temp: Math.round(data.current_weather.temperature),
-                        desc: decodeWmoCode(data.current_weather.weathercode),
-                        fallback: false
-                    };
-                    if (activeCity === city) renderCity(city);
-                })
-                .catch(err => {
-                    console.warn('Weather fallback:', err);
-                    cache[city] = { fallback: true };
-                    if (activeCity === city) renderCity(city);
-                });
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.json();
+            })
+            .then(data => {
+                if (!data.current_weather) throw new Error('Missing current_weather');
+                cache[city] = {
+                    temp: Math.round(data.current_weather.temperature),
+                    desc: decodeWmoCode(data.current_weather.weathercode),
+                    fallback: false
+                };
+                if (activeCity === city) renderCity(city);
+            })
+            .catch(err => {
+                console.warn('Weather fallback:', err);
+                cache[city] = { fallback: true };
+                if (activeCity === city) renderCity(city);
+            });
         }
-
+        
         weatherCard.addEventListener('click', () => {
             activeCity = activeCity === 'Antipolo' ? 'Dubai' : 'Antipolo';
             weatherCard.classList.remove('is-flipping');
             void weatherCard.offsetWidth;
             weatherCard.classList.add('is-flipping');
             playBeep(activeCity === 'Dubai' ? 660 : 520, 0.06, 'sine', 0.035);
-
+            
             if (!cache[activeCity]) {
                 renderCity(activeCity);
                 fetchCityWeather(activeCity);
@@ -2451,7 +2479,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCity(activeCity);
             }
         });
-
+        
         fetchCityWeather('Antipolo');
         fetchCityWeather('Dubai');
     }
@@ -2459,30 +2487,30 @@ document.addEventListener('DOMContentLoaded', () => {
         function applySkyPhase() {
             const hour = new Date().getHours();
             document.body.classList.remove('sky-morning', 'sky-afternoon', 'sky-sunset', 'sky-night');
-
+            
             if (hour >= 6 && hour < 12) document.body.classList.add('sky-morning');
             else if (hour >= 12 && hour < 17) document.body.classList.add('sky-afternoon');
             else if (hour >= 17 && hour < 19) document.body.classList.add('sky-sunset');
             else document.body.classList.add('sky-night');
         }
-
+        
         applySkyPhase();
         setInterval(applySkyPhase, 60000);
     }
     function startCalendarExport() {
         const eventBar = document.querySelector('.event-details-bar');
         if (!eventBar) return;
-
+        
         const btnWrap = document.createElement('div');
         btnWrap.style.textAlign = 'center';
-
+        
         const calBtn = document.createElement('button');
         calBtn.type = 'button';
         calBtn.className = 'calendar-save-btn';
         calBtn.textContent = ' Save Dec 17 Showtime to Calendar';
         btnWrap.appendChild(calBtn);
         eventBar.insertAdjacentElement('afterend', btnWrap);
-
+        
         calBtn.addEventListener('click', () => {
             const icsLines = [
                 'BEGIN:VCALENDAR',
@@ -2499,7 +2527,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'END:VEVENT',
                 'END:VCALENDAR'
             ].join('\r\n');
-
+            
             const blob = new Blob([icsLines], { type: 'text/calendar;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -2509,7 +2537,7 @@ document.addEventListener('DOMContentLoaded', () => {
             link.click();
             link.remove();
             URL.revokeObjectURL(url);
-
+            
             calBtn.textContent = ' Calendar Invite Downloaded!';
             setTimeout(() => {
                 calBtn.textContent = ' Save Dec 17 Showtime to Calendar';
@@ -2519,17 +2547,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function startVenueFloorPlan() {
         const synopsisCard = document.querySelector('.synopsis-card');
         if (!synopsisCard) return;
-
+        
         const existingCalBtn = synopsisCard.querySelector('.calendar-save-btn');
         const targetWrap = existingCalBtn ? existingCalBtn.parentElement : synopsisCard;
-
+        
         const mapBtn = document.createElement('button');
         mapBtn.type = 'button';
         mapBtn.className = 'calendar-save-btn floorplan-toggle-btn';
         mapBtn.style.marginLeft = '8px';
         mapBtn.textContent = ' AFCS Venue Floor Plan';
         targetWrap.appendChild(mapBtn);
-
+        
         const drawer = document.createElement('div');
         drawer.className = 'venue-floorplan-drawer';
         drawer.innerHTML = [
@@ -2563,10 +2591,10 @@ document.addEventListener('DOMContentLoaded', () => {
             '<div class="fp-zone fp-room fp-chapel" data-info="AFCS Chapel !  Located at the bottom-right corner."> CHAPEL</div></div></div>'
         ].join('');
         targetWrap.insertAdjacentElement('afterend', drawer);
-
+        
         const infoEl = drawer.querySelector('#fpZoneInfo');
         const readerBtn = drawer.querySelector('#fpReaderToggle');
-
+        
         function setReaderMode(enable) {
             drawer.classList.toggle('is-reader-view', enable);
             readerBtn.textContent = enable ? '✕ Exit Reader View' : ' Reader View';
@@ -2577,13 +2605,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 targetWrap.insertAdjacentElement('afterend', drawer);
             }
         }
-
+        
         readerBtn.addEventListener('click', () => {
             const nextState = !drawer.classList.contains('is-reader-view');
             setReaderMode(nextState);
             playBeep(nextState ? 660 : 480, 0.06, 'sine', 0.035);
         });
-
+        
         mapBtn.addEventListener('click', () => {
             const isOpen = drawer.classList.toggle('is-open');
             if (!isOpen && drawer.classList.contains('is-reader-view')) {
@@ -2592,7 +2620,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mapBtn.textContent = isOpen ? ' Hide Venue Floor Plan' : ' AFCS Venue Floor Plan';
             playBeep(isOpen ? 620 : 460, 0.06, 'sine', 0.035);
         });
-
+        
         drawer.querySelectorAll('.fp-zone').forEach(zone => {
             zone.addEventListener('click', () => {
                 drawer.querySelectorAll('.fp-zone').forEach(z => z.classList.remove('is-selected'));
@@ -2607,16 +2635,16 @@ document.addEventListener('DOMContentLoaded', () => {
             (s.querySelector('.stat-label')?.textContent || '').toLowerCase().includes('setting')
         );
         if (!settingStat) return;
-
+        
         const valEl = settingStat.querySelector('.stat-value');
         const labelEl = settingStat.querySelector('.stat-label');
         if (!valEl || !labelEl) return;
-
+        
         let idx = 0;
         settingStat.classList.add('burj-fact-card');
         settingStat.title = 'Click for Burj Khalifa research facts';
         labelEl.textContent = 'Setting (Click for Facts) ↻';
-
+        
         settingStat.addEventListener('click', () => {
             idx = (idx + 1) % CONFIG.venueFacts.length;
             valEl.classList.remove('fact-pop');
@@ -2631,19 +2659,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const fillEl = document.getElementById('timelineFill');
         const nodesEl = document.getElementById('timelineNodes');
         if (!fillEl || !nodesEl) return;
-
+        
         const startMs = new Date('2026-11-03T00:00:00').getTime();
         const endMs = new Date('2026-12-17T18:00:00').getTime();
         const nowMs = Date.now();
-
+        
         const rawPercent = ((nowMs - startMs) / (endMs - startMs)) * 100;
         fillEl.style.width = `${Math.max(0, Math.min(100, rawPercent))}%`;
-
+        
         let activeIndex = 0;
         CONFIG.milestones.forEach((m, idx) => {
             if (nowMs >= new Date(`${m.date}T00:00:00`).getTime()) activeIndex = idx;
         });
-
+        
         let detailBox = null;
         if (section) {
             detailBox = document.createElement('div');
@@ -2651,23 +2679,23 @@ document.addEventListener('DOMContentLoaded', () => {
             section.appendChild(detailBox);
         }
         let activeNodeIdx = -1;
-
+        
         CONFIG.milestones.forEach((m, idx) => {
             const mMs = new Date(`${m.date}T00:00:00`).getTime();
             const leftPct = Math.max(0, Math.min(100, ((mMs - startMs) / (endMs - startMs)) * 100));
-
+            
             const node = document.createElement('div');
             node.className = `tl-node pos-${m.pos}`;
             node.style.left = `${leftPct}%`;
-
+            
             if (idx < activeIndex) node.classList.add('is-past');
             else if ((idx === activeIndex && nowMs < endMs) || (nowMs >= endMs && idx === CONFIG.milestones.length - 1)) {
                 node.classList.add('is-now');
             }
-
+            
             const dateLabel = node.classList.contains('is-now') ? `NOW (${m.shortDate})` : m.shortDate;
             node.innerHTML = `<div class="tl-label"><span class="tl-date">${dateLabel}</span><span>${m.title}</span></div>`;
-
+            
             if (detailBox) {
                 node.addEventListener('click', () => {
                     if (activeNodeIdx === idx) {
@@ -2681,7 +2709,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     playBeep(640, 0.06, 'sine', 0.035);
                 });
             }
-
+            
             nodesEl.appendChild(node);
         });
     }
@@ -2692,9 +2720,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const minsEl = document.getElementById('cd-mins');
         const secsEl = document.getElementById('cd-secs');
         if (!wrapper || !daysEl) return;
-
+        
         const targetDate = new Date('2026-12-17T18:00:00').getTime();
-
+        
         function updateTimer() {
             const diff = targetDate - Date.now();
             if (diff <= 0) {
@@ -2703,13 +2731,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (diff < 86400000) wrapper.classList.add('is-urgent');
-
+            
             daysEl.textContent = String(Math.floor(diff / 86400000)).padStart(2, '0');
             hoursEl.textContent = String(Math.floor((diff / 3600000) % 24)).padStart(2, '0');
             minsEl.textContent = String(Math.floor((diff / 60000) % 60)).padStart(2, '0');
             secsEl.textContent = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
         }
-
+        
         updateTimer();
         setInterval(updateTimer, 1000);
     }
@@ -2717,7 +2745,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const synopsisCard = document.querySelector('.synopsis-card');
         const themeBanner = synopsisCard ? synopsisCard.querySelector('.theme-banner') : null;
         if (!synopsisCard || !CONFIG.scriptures || !CONFIG.scriptures.length) return;
-
+        
         let idx = Math.floor(Math.random() * CONFIG.scriptures.length);
         const box = document.createElement('div');
         box.className = 'scripture-card';
@@ -2733,17 +2761,17 @@ document.addEventListener('DOMContentLoaded', () => {
             '<button type="button" class="scripture-btn" id="copyScriptureBtn"> Copy Verse</button>',
             '</div>'
         ].join('');
-
+        
         if (themeBanner) themeBanner.insertAdjacentElement('afterend', box);
         else synopsisCard.appendChild(box);
-
+        
         const tagEl = box.querySelector('#scriptureTag');
         const counterEl = box.querySelector('#scriptureCounter');
         const textEl = box.querySelector('#scriptureText');
         const refEl = box.querySelector('#scriptureRef');
         const nextBtn = box.querySelector('#nextScriptureBtn');
         const copyBtn = box.querySelector('#copyScriptureBtn');
-
+        
         function renderVerse() {
             const item = CONFIG.scriptures.at(idx);
             tagEl.textContent = ' ' + item.tag;
@@ -2751,7 +2779,7 @@ document.addEventListener('DOMContentLoaded', () => {
             textEl.textContent = item.text;
             refEl.textContent = '!  ' + item.ref;
         }
-
+        
         nextBtn.addEventListener('click', () => {
             idx = (idx + 1) % CONFIG.scriptures.length;
             textEl.classList.remove('fact-pop');
@@ -2760,7 +2788,7 @@ document.addEventListener('DOMContentLoaded', () => {
             textEl.classList.add('fact-pop');
             playBeep(587.33, 0.06, 'sine', 0.035);
         });
-
+        
         copyBtn.addEventListener('click', () => {
             const item = CONFIG.scriptures.at(idx);
             const fullQuote = item.text + ' !  ' + item.ref + ' (Beyond The Manger • Paskong AFCS 2026)';
@@ -2770,34 +2798,222 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => { copyBtn.textContent = ' Copy Verse'; }, 2000);
             });
         });
-
+        
         renderVerse();
     }
+    function startFaqSection() {
+        const synopsisSection = document.querySelector('.synopsis-section');
+        if (!synopsisSection || !CONFIG.faqs || !CONFIG.faqs.length) return;
+        
+        const section = document.createElement('section');
+        section.className = 'faq-section reveal-on-scroll';
+        section.innerHTML = [
+            '<div class="faq-card">',
+            '  <div class="faq-header">',
+            '    <div>',
+            '      <span class="story-pill">❓ GOT QUESTIONS?</span>',
+            '      <h2 class="faq-heading">Frequently Asked Questions</h2>',
+            '    </div>',
+            '    <button type="button" class="faq-toggle-all-btn" id="faqToggleAllBtn">Show All Answers</button>',
+            '  </div>',
+            '  <div class="faq-list" id="faqList"></div>',
+            '</div>'
+        ].join('');
+        
+        synopsisSection.insertAdjacentElement('afterend', section);
+        
+        const listEl = section.querySelector('#faqList');
+        const toggleAllBtn = section.querySelector('#faqToggleAllBtn');
+        
+        CONFIG.faqs.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'faq-item';
+            row.innerHTML = [
+                `<button type="button" class="faq-question" aria-expanded="false">`,
+                `  <span>${item.q}</span>`,
+                `  <span class="faq-chevron">▾</span>`,
+                `</button>`,
+                `<div class="faq-answer"><p>${item.a}</p></div>`
+            ].join('');
+            
+            const qBtn = row.querySelector('.faq-question');
+            qBtn.addEventListener('click', () => {
+                const isOpen = row.classList.toggle('is-open');
+                qBtn.setAttribute('aria-expanded', String(isOpen));
+                syncToggleAllLabel();
+                playBeep(isOpen ? 620 : 460, 0.05, 'sine', 0.03);
+            });
+            
+            listEl.appendChild(row);
+        });
+        
+        function syncToggleAllLabel() {
+            const items = Array.from(listEl.querySelectorAll('.faq-item'));
+            const allOpen = items.length > 0 && items.every(el => el.classList.contains('is-open'));
+            toggleAllBtn.textContent = allOpen ? 'Hide All Answers' : 'Show All Answers';
+            toggleAllBtn.classList.toggle('is-active', allOpen);
+        }
+        
+        toggleAllBtn.addEventListener('click', () => {
+            const items = Array.from(listEl.querySelectorAll('.faq-item'));
+            const shouldOpen = !items.every(el => el.classList.contains('is-open'));
+            
+            items.forEach(el => {
+                el.classList.toggle('is-open', shouldOpen);
+                el.querySelector('.faq-question')?.setAttribute('aria-expanded', String(shouldOpen));
+            });
+            
+            syncToggleAllLabel();
+            playBeep(shouldOpen ? 680 : 420, 0.06, 'sine', 0.035);
+        });
+    }
+    function startFeedbackSection() {
+        const anchor = document.querySelector('.faq-section') || document.querySelector('.synopsis-section');
+        if (!anchor) return;
+        
+        const section = document.createElement('section');
+        section.className = 'feedback-section reveal-on-scroll';
+        section.innerHTML = [
+            '<div class="feedback-card">',
+            '  <div class="feedback-header">',
+            '    <span class="story-pill">💌 WE\'D LOVE TO HEAR FROM YOU</span>',
+            '    <h2 class="feedback-heading">Requests &amp; Feedback</h2>',
+            '    <p class="feedback-sub">Have a question for the Q&amp;A, a website feature idea, or encouragement for Grade 7 – Psalms?</p>',
+            '  </div>',
+            '  <form class="feedback-form" id="feedbackForm">',
+            '    <div class="feedback-row">',
+            '      <input type="text" class="feedback-input" id="fbName" placeholder="Your Name (or Anonymous)" maxlength="60">',
+            '      <select class="feedback-select" id="fbCategory">',
+            '        <option value="Question for Q&A">❓ Question for Q&A</option>',
+            '        <option value="Website Feature Request">✨ Website Feature Request</option>',
+            '        <option value="Play Feedback / Encouragement">🎭 Play Feedback / Encouragement</option>',
+            '        <option value="Bug Report">🐞 Bug Report</option>',
+            '      </select>',
+            '    </div>',
+            '    <textarea class="feedback-textarea" id="fbMessage" rows="3" placeholder="Write your request, question, or message here..." required></textarea>',
+            '    <div class="feedback-actions">',
+            '      <button type="submit" class="feedback-submit-btn">✉️ Send via Email</button>',
+            '      <button type="button" class="feedback-copy-btn" id="fbCopyBtn">📋 Copy Message to Send</button>',
+            '    </div>',
+            '    <div class="feedback-status" id="fbStatus"></div>',
+            '  </form>',
+            '</div>'
+        ].join('');
+        
+        anchor.insertAdjacentElement('afterend', section);
+        
+        const form = section.querySelector('#feedbackForm');
+        const nameInput = section.querySelector('#fbName');
+        const catSelect = section.querySelector('#fbCategory');
+        const msgInput = section.querySelector('#fbMessage');
+        const copyBtn = section.querySelector('#fbCopyBtn');
+        const statusEl = section.querySelector('#fbStatus');
+        
+        function buildFormattedText() {
+            const sender = nameInput.value.trim() || 'Anonymous Visitor';
+            const category = catSelect.value;
+            const message = msgInput.value.trim();
+            return {
+                subject: `[Beyond The Manger] ${category} from ${sender}`,
+                body: `From: ${sender}\nCategory: ${category}\n\nMessage:\n${message}\n\n— Sent from Beyond The Manger (Grade 7 – Psalms)`
+            };
+        }
+        
+        function showStatus(text, isError = false) {
+            statusEl.textContent = text;
+            statusEl.style.color = isError ? '#fda4af' : '#6ee7b7';
+            statusEl.classList.add('visible');
+        }
+        
+        const submitBtn = form.querySelector('.feedback-submit-btn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = msgInput.value.trim();
+            if (!message) {
+                showStatus('Please type a message first!', true);
+                return;
+            }
+
+            const sender = nameInput.value.trim() || 'Anonymous Visitor';
+            const category = catSelect.value;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Sending...';
+
+            try {
+                const res = await fetch('https://web3forms.com', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        access_key: CONFIG.web3formsKey,
+                        subject: `[Beyond The Manger] ${category} from ${sender}`,
+                        from_name: sender,
+                        category: category,
+                        message: message
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showStatus('✓ Sent! Thank you for your feedback.');
+                    form.reset();
+                    playBeep(680, 0.08, 'sine', 0.04);
+                    setTimeout(() => playBeep(880, 0.12, 'sine', 0.04), 80);
+                } else {
+                    throw new Error(data.message || 'Submission failed');
+                }
+            } catch (err) {
+                showStatus('⚠️ Could not send automatically. Try the Copy button instead!', true);
+                playBeep(320, 0.12, 'sawtooth', 0.04);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✉️ Send Message';
+            }
+        });
+        
+        copyBtn.addEventListener('click', () => {
+            if (!msgInput.value.trim()) {
+                showStatus('Please type a message first!', true);
+                msgInput.focus();
+                return;
+            }
+            const { body } = buildFormattedText();
+            navigator.clipboard.writeText(body).then(() => {
+                copyBtn.textContent = '✓ Copied!';
+                showStatus('✓ Message copied! Paste it in Messenger, Discord, or email to send.');
+                playBeep(784, 0.08, 'sine', 0.04);
+                setTimeout(() => { copyBtn.textContent = '📋 Copy Message to Send'; }, 2200);
+            });
+        });
+    }
     //#endregion
-    
     //#region Extra Glue For Code
     function startModalsAndShortcuts() {
         const helpBtn = document.getElementById('shortcutHelpBtn');
         const modal = document.getElementById('shortcutModal');
         const closeHelpBtn = document.getElementById('closeShortcutModal');
-
+        
         function toggleHelpModal(forceState) {
             if (!modal) return;
             const shouldOpen = typeof forceState === 'boolean' ? forceState : !modal.classList.contains('active');
             modal.classList.toggle('active', shouldOpen);
         }
-
+        
         if (helpBtn) helpBtn.addEventListener('click', () => toggleHelpModal(true));
         if (closeHelpBtn) closeHelpBtn.addEventListener('click', () => toggleHelpModal(false));
         if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) toggleHelpModal(false); });
-
+        
         window.addEventListener('keydown', (e) => {
             const openModals = document.querySelectorAll('.vip-modal-overlay.active');
             if (openModals.length > 0) {
                 if (e.key === 'Escape') openModals.forEach(m => m.classList.remove('active'));
                 return;
             }
-
+            
             if (e.key === 'Escape') {
                 if (DOM.panel && DOM.panel.classList.contains('active')) {
                     closePanel();
@@ -2810,16 +3026,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return;
             }
-
+            
             if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
                 return;
             }
-
+            
             if (DOM.panel && DOM.panel.classList.contains('active')) {
                 if (e.key === 'ArrowRight') { navigatePanel(1); return; }
                 if (e.key === 'ArrowLeft') { navigatePanel(-1); return; }
             }
-
+            
             if (e.key === '/') {
                 e.preventDefault();
                 if (DOM.searchInput) {
@@ -2835,67 +3051,66 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
     //#endregion
-
     function startAltPortal() {
-    if (!DOM.searchInput) return;
-    DOM.searchInput.addEventListener('input', () => {
-        if (DOM.searchInput.value.toLowerCase().trim() === 'alt') {
-            DOM.searchInput.value = '';
-            const toast = document.createElement('div');
-            toast.style.cssText = 'position:fixed;top:28px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:999px;background:rgba(5,10,35,0.96);border:2px solid #38bdf8;color:#e0f2fe;font-weight:800;font-size:13px;letter-spacing:0.6px;z-index:999999;box-shadow:0 12px 32px rgba(0,0,0,0.85),0 0 24px rgba(56,189,248,0.6);';
-            toast.textContent = '🌀 Opening Beyond The Manger: Alt Universe...';
-            document.body.appendChild(toast);
-
-            playBeep(523.25, 0.08, 'sine', 0.04);
-            setTimeout(() => playBeep(783.99, 0.14, 'sine', 0.045), 75);
-
-            setTimeout(() => {
-                window.location.href = 'https://voxxiethelamb.github.io/beyondthemangeralt';
-            }, 650);
-        }
-    });
-}
-
-function startAll() {
-    createPeople();
-    startAudioControls();
-    startPraiseBGM();
-    startDynamicTabPanel();
-    bdayParty();
-    startPortraitBadges();
-    startBadgeLegend();
-    alphaBetaThing();
-    navBarThing();
-    startImageFallback();
-
-    startDecorativeWaves();
-    startParticleCanvas();
-    startCursorGlow();
-    startPortraitPhysics();
-    startScrollEffects();
-    startTimeOfDayTheme();
-
-    searchThings();
-    filterCards();
-    startSidePanel();
-    startCompareModal();
-    startPlaybillModal();
-    startTourGuide();
-    startScriptureCard();
-
-    startWeatherWidget();
-    startCalendarExport();
-    startVenueFloorPlan();
-    startVenueFacts();
-    startTimeline();
-    startCountdown();
-
-    startModalsAndShortcuts();
-    startTrailerControls();
-    startAltPortal();
-
-}
-startAll();
+        if (!DOM.searchInput) return;
+        DOM.searchInput.addEventListener('input', () => {
+            if (DOM.searchInput.value.toLowerCase().trim() === 'alt') {
+                DOM.searchInput.value = '';
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed;top:28px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:999px;background:rgba(5,10,35,0.96);border:2px solid #38bdf8;color:#e0f2fe;font-weight:800;font-size:13px;letter-spacing:0.6px;z-index:999999;box-shadow:0 12px 32px rgba(0,0,0,0.85),0 0 24px rgba(56,189,248,0.6);';
+                toast.textContent = '🌀 Opening Beyond The Manger: Alt Universe...';
+                document.body.appendChild(toast);
+                
+                playBeep(523.25, 0.08, 'sine', 0.04);
+                setTimeout(() => playBeep(783.99, 0.14, 'sine', 0.045), 75);
+                
+                setTimeout(() => {
+                    window.location.href = 'https://voxxiethelamb.github.io/beyondthemangeralt';
+                }, 650);
+            }
+        });
+    }
+    function startAll() {
+        createPeople();
+        startAudioControls();
+        startPraiseBGM();
+        startDynamicTabPanel();
+        bdayParty();
+        startPortraitBadges();
+        startBadgeLegend();
+        alphaBetaThing();
+        navBarThing();
+        startImageFallback();
+        
+        startDecorativeWaves();
+        startParticleCanvas();
+        startCursorGlow();
+        startPortraitPhysics();
+        startFaqSection();
+        startFeedbackSection();
+        startScrollEffects();
+        startTimeOfDayTheme();
+        
+        searchThings();
+        filterCards();
+        startSidePanel();
+        startCompareModal();
+        startPlaybillModal();
+        startTourGuide();
+        startScriptureCard();
+        
+        startWeatherWidget();
+        startCalendarExport();
+        startVenueFloorPlan();
+        startVenueFacts();
+        startTimeline();
+        startCountdown();
+        
+        startModalsAndShortcuts();
+        startTrailerControls();
+        startAltPortal();
+        
+    }
+    startAll();
 });
