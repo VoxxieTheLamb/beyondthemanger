@@ -724,9 +724,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>Background Waves</span>
             <button type="button" class="mixer-mute-chip" id="settingsWaveBtn">Animated</button>
         </div>
-        <p style="margin:0;font-size:10.5px;line-height:1.35;color:#fbbf24;opacity:0.9;">
-            ⚠️ Not recommended for Teachers and Parents due to it being heavily altered and modified for fun, rather than a formal, clean website.
-        </p>
     `;
         
         document.body.appendChild(toggleBtn);
@@ -3078,26 +3075,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    //#endregion
-    function startAltPortal() {
-        if (!DOM.searchInput) return;
-        DOM.searchInput.addEventListener('input', () => {
-            if (DOM.searchInput.value.toLowerCase().trim() === 'alt') {
-                DOM.searchInput.value = '';
-                const toast = document.createElement('div');
-                toast.style.cssText = 'position:fixed;top:28px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:999px;background:rgba(5,10,35,0.96);border:2px solid #38bdf8;color:#e0f2fe;font-weight:800;font-size:13px;letter-spacing:0.6px;z-index:999999;box-shadow:0 12px 32px rgba(0,0,0,0.85),0 0 24px rgba(56,189,248,0.6);';
-                toast.textContent = '🌀 Opening Beyond The Manger: Alt Universe...';
-                document.body.appendChild(toast);
-                
-                playBeep(523.25, 0.08, 'sine', 0.04);
-                setTimeout(() => playBeep(783.99, 0.14, 'sine', 0.045), 75);
-                
-                setTimeout(() => {
-                    window.location.href = 'https://voxxiethelamb.github.io/beyondthemangeralt';
-                }, 650);
-            }
-        });
-    }
+    //#endregions
     function startAll() {
         createPeople();
         startAudioControls();
@@ -3136,7 +3114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         startModalsAndShortcuts();
         startTrailerControls();
-        startAltPortal();
         
     }
     startAll();
