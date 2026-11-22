@@ -2926,20 +2926,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const submitBtn = form.querySelector('.feedback-submit-btn');
+        const COOLDOWN_MS = 20000; // 20-second cooldown
+        let isLocked = false;
+
+        function startCooldown(remainingMs) {
+            isLocked = true;
+            submitBtn.disabled = true;
+
+            function tick() {
+                const left = Math.ceil((Number(localStorage.getItem('afcs_fb_cooldown_until')) - Date.now()) / 1000);
+                if (left <= 0) {
+                    isLocked = false;
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '✉️ Send Message';
+                } else {
+                    submitBtn.textContent = `⏳ Wait ${left}s...`;
+                    setTimeout(tick, 500);
+                }
+            }
+            tick();
+        }
+
+        // Resume cooldown automatically if user refreshes the page
+        const savedUntil = Number(localStorage.getItem('afcs_fb_cooldown_until') || 0);
+        if (savedUntil > Date.now()) {
+            startCooldown(savedUntil - Date.now());
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (isLocked) return;
+
+            const until = Number(localStorage.getItem('afcs_fb_cooldown_until') || 0);
+            if (until > Date.now()) {
+                startCooldown(until - Date.now());
+                return;
+            }
+
             const message = msgInput.value.trim();
             if (!message) {
                 showStatus('Please type a message first!', true);
                 return;
             }
 
-            const sender = nameInput.value.trim() || 'Anonymous Visitor';
-            const category = catSelect.value;
-
+            isLocked = true;
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Sending...';
+
+            const sender = nameInput.value.trim() || 'Anonymous Visitor';
+            const category = catSelect.value;
 
             try {
                 const res = await fetch('https://api.web3forms.com/submit', {
@@ -2963,15 +2998,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     form.reset();
                     playBeep(680, 0.08, 'sine', 0.04);
                     setTimeout(() => playBeep(880, 0.12, 'sine', 0.04), 80);
+
+                    localStorage.setItem('afcs_fb_cooldown_until', String(Date.now() + COOLDOWN_MS));
+                    startCooldown(COOLDOWN_MS);
                 } else {
                     throw new Error(data.message || 'Submission failed');
                 }
             } catch (err) {
-                showStatus('⚠️ Could not send automatically. Try the Copy button instead!', true);
-                playBeep(320, 0.12, 'sawtooth', 0.04);
-            } finally {
+                isLocked = false;
                 submitBtn.disabled = false;
                 submitBtn.textContent = '✉️ Send Message';
+                showStatus('⚠️ Could not send automatically. Try the Copy button instead!', true);
+                playBeep(320, 0.12, 'sawtooth', 0.04);
             }
         });
         
